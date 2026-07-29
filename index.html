@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Radar de ExpediÃ§Ã£o | Wetzel</title>
+  <meta name="description" content="Acompanhamento de notas fiscais emitidas e ainda sem saÃ­da.">
+  <meta property="og:title" content="Radar de ExpediÃ§Ã£o | Wetzel">
+  <meta property="og:description" content="Fila operacional priorizada por tempo e valor faturado.">
+  <meta property="og:image" content="https://ernanintcomercial.github.io/wetzel-nfs-sem-saida/og.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">W</span><div><strong>Wetzel</strong><small>InteligÃªncia Comercial</small></div></div>
+      <div class="update"><span class="live-dot"></span><span id="updatedAt">Carregando baseâ€¦</span></div>
+    </header>
+    <div class="shell">
+      <section class="hero">
+        <div><p class="eyebrow">RADAR DE EXPEDIÃ‡ÃƒO</p><h1>Notas fiscais <span>sem saÃ­da</span></h1><p class="subtitle">Fila operacional priorizada por tempo e valor faturado.</p></div>
+        <div class="hero-callout"><span>Prioridade imediata</span><strong id="criticalCount">â€”</strong><small id="criticalValue">acima de 30 dias</small></div>
+      </section>
+      <section class="kpi-grid" id="kpis"></section>
+      <section class="insight-grid">
+        <article class="panel aging-panel">
+          <div class="panel-head"><div><p class="panel-kicker">ENVELHECIMENTO</p><h2>Onde a fila estÃ¡ acumulando</h2></div><div class="metric-toggle"><button class="active">Quantidade</button><button>Valor</button></div></div>
+          <div class="age-chart" id="ageChart"></div>
+          <p class="chart-note" id="ageNote"><span></span></p>
+        </article>
+        <article class="panel status-panel">
+          <div class="panel-head"><div><p class="panel-kicker">GARGALO OPERACIONAL</p><h2>SituaÃ§Ã£o no Octopus</h2></div></div>
+          <div class="donut-wrap"><div class="donut" id="donut"><div><strong id="donutTotal">â€”</strong><span>NFs</span></div></div><div class="status-list" id="statusList"></div></div>
+        </article>
+      </section>
+      <section class="panel client-panel">
+        <div class="panel-head"><div><p class="panel-kicker">CONCENTRAÃ‡ÃƒO</p><h2>Clientes com maior valor pendente</h2></div><span class="panel-context">Top 5 por valor faturado</span></div>
+        <div class="client-list" id="clientList"></div>
+      </section>
+      <section class="panel table-panel">
+        <div class="panel-head table-title"><div><p class="panel-kicker">FILA DE AÃ‡ÃƒO</p><h2>Notas fiscais priorizadas</h2></div><span class="result-count" id="resultCount"></span></div>
+        <div class="filters">
+          <label class="search-box"><span>âŒ•</span><input id="search" placeholder="Buscar NF, cliente, representante ou embarqueâ€¦"></label>
+          <select id="statusFilter" aria-label="Filtrar situaÃ§Ã£o"><option>Todos</option></select>
+          <select id="ageFilter" aria-label="Filtrar idade"><option value="0">Todas as idades</option><option value="8">8+ dias</option><option value="16">16+ dias</option><option value="31">31+ dias</option></select>
+          <select id="sortFilter" aria-label="Ordenar"><option value="age">Maior atraso</option><option value="value">Maior valor</option></select>
+        </div>
+        <div class="table-scroll"><table><thead><tr><th>Prioridade</th><th>NF / EmissÃ£o</th><th>Cliente</th><th>Representante</th><th>SituaÃ§Ã£o</th><th>Valor</th><th>Tempo</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+        <button class="load-more" id="loadMore">Ver mais 20 notas</button>
+        <div class="empty-state" id="emptyState" hidden>Nenhuma NF encontrada com filtros atuais.</div>
+      </section>
+      <footer><span>Wetzel Â· Radar de ExpediÃ§Ã£o</span><span id="referenceDate"></span></footer>
+    </div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
+
