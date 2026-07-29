@@ -1,0 +1,71 @@
+const money = new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0});
+const integer = new Intl.NumberFormat("pt-BR");
+const formatDate = value => new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR");
+const bands = [
+  ["0â€“2 dias",0,2,"#2f8f83"],["3â€“7 dias",3,7,"#58a89c"],["8â€“15 dias",8,15,"#d6a34a"],
+  ["16â€“30 dias",16,30,"#dd7a48"],["31â€“60 dias",31,60,"#cf5058"],["61+ dias",61,Infinity,"#8f2735"]
+];
+const colors = {"Sem situaÃ§Ã£o":"#8994a5","Aguardo ExpediÃ§Ã£o":"#d6a34a","NÃ£o Liberados":"#cf5058","Liberados":"#2f8f83","Em ConferÃªncia":"#6b79c8"};
+let records=[], filtered=[], visible=15, selectedStatus="Todos", minimumAge=0, sorting="age";
+const byId = id => document.getElementById(id);
+const sum = (items,field="value") => items.reduce((total,item)=>total+(Number(item[field])||0),0);
+const escapeHtml = value => String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+function risk(age){
+  if(age>=31)return["CrÃ­tico","critical"]; if(age>=16)return["Alerta","warning"];
+  if(age>=8)return["AtenÃ§Ã£o","attention"]; return["Recente","recent"];
+}
+function renderTable(){
+  const q=byId("search").value.trim().toLocaleLowerCase("pt-BR");
+  filtered=records.filter(x=>(selectedStatus==="Todos"||x.octopus===selectedStatus)&&x.age>=minimumAge)
+    .filter(x=>!q||[x.nf,x.client,x.representative,x.shipment].join(" ").toLocaleLowerCase("pt-BR").includes(q))
+    .sort((a,b)=>sorting==="value"?b.value-a.value:b.age-a.age||b.value-a.value);
+  byId("resultCount").textContent=`${integer.format(filtered.length)} resultados`;
+  byId("tableBody").innerHTML=filtered.slice(0,visible).map(x=>{
+    const [label,klass]=risk(x.age);
+    return `<tr><td><span class="risk ${klass}">${label}</span></td><td><strong class="nf">${escapeHtml(x.nf)}</strong><small>${formatDate(x.emission)}</small></td><td><strong>${escapeHtml(x.client)}</strong><small>ID ${escapeHtml(x.clientId)} Â· Emb. ${escapeHtml(x.shipment)}</small></td><td>${escapeHtml(x.representative)}</td><td><span class="status-pill"><i style="background:${colors[x.octopus]||"#8994a5"}"></i>${escapeHtml(x.octopus)}</span></td><td class="number">${money.format(x.value)}</td><td class="age-cell"><strong>${x.age}</strong><span>dias</span></td></tr>`;
+  }).join("");
+  byId("loadMore").hidden=visible>=filtered.length;
+  byId("emptyState").hidden=filtered.length>0;
+}
+function applyStatus(label){
+  selectedStatus=selectedStatus===label?"Todos":label;
+  byId("statusFilter").value=selectedStatus; visible=15;
+  document.querySelectorAll("#statusList button").forEach(b=>b.classList.toggle("active",b.dataset.status===selectedStatus));
+  renderTable();
+}
+async function init(){
+  const data=await fetch("nfs.json").then(r=>r.json()); records=data.records;
+  byId("updatedAt").textContent=`Base atualizada em ${data.sourceUpdatedAt}`;
+  byId("referenceDate").textContent=`ReferÃªncia: ${formatDate(data.referenceDate)} Â· SaÃ­da vazia na origem`;
+  const total=sum(records), critical=records.filter(x=>x.age>=31), old=records.filter(x=>x.age>=16);
+  byId("criticalCount").textContent=`${integer.format(critical.length)} NFs`;
+  byId("criticalValue").textContent=`acima de 30 dias Â· ${money.format(sum(critical))}`;
+  byId("kpis").innerHTML=[
+    ["primary","VALOR SEM SAÃDA","R$",money.format(total),"3,7% do faturamento da base"],
+    ["","NOTAS PENDENTES","#",integer.format(records.length),`em ${new Set(records.map(x=>x.clientId)).size} clientes`],
+    ["","ACIMA DE 15 DIAS","!",integer.format(old.length),`${money.format(sum(old))} em risco`],
+    ["critical-card","MAIOR TEMPO","â†—",`${Math.max(...records.map(x=>x.age))} dias`,"desde emissÃ£o da NF"]
+  ].map(x=>`<article class="kpi-card ${x[0]}"><div class="kpi-label"><span>${x[1]}</span><i>${x[2]}</i></div><strong>${x[3]}</strong><p>${x[4]}</p></article>`).join("");
+  const bandData=bands.map(([label,min,max,color])=>{const items=records.filter(x=>x.age>=min&&x.age<=max);return{label,min,color,count:items.length,value:sum(items)}});
+  const maxBand=Math.max(...bandData.map(x=>x.count));
+  byId("ageChart").innerHTML=bandData.map(x=>`<button class="age-column" data-age="${x.min}" aria-label="Filtrar a partir de ${x.label}"><strong>${x.count}</strong><div class="bar-track"><span style="height:${Math.max(7,x.count/maxBand*100)}%;background:${x.color}"></span></div><small>${x.label}</small><em>${money.format(x.value)}</em></button>`).join("");
+  byId("ageNote").insertAdjacentText("beforeend",` Faixas acima de 15 dias concentram ${money.format(sum(old))}.`);
+  document.querySelectorAll(".age-column").forEach(b=>b.onclick=()=>{minimumAge=minimumAge===Number(b.dataset.age)?0:Number(b.dataset.age);byId("ageFilter").value=minimumAge;visible=15;renderTable()});
+  const statuses=[...new Set(records.map(x=>x.octopus))].map(label=>{const items=records.filter(x=>x.octopus===label);return{label,count:items.length,value:sum(items)}}).sort((a,b)=>b.count-a.count);
+  let cursor=0; const segments=statuses.map(x=>{const start=cursor;cursor+=x.count/records.length*100;return`${colors[x.label]} ${start}% ${cursor}%`});
+  byId("donut").style.background=`conic-gradient(${segments.join(",")})`; byId("donutTotal").textContent=records.length;
+  byId("statusList").innerHTML=statuses.map(x=>`<button data-status="${escapeHtml(x.label)}"><span class="legend-dot" style="background:${colors[x.label]}"></span><span>${escapeHtml(x.label)}</span><strong>${x.count}</strong><small>${money.format(x.value)}</small></button>`).join("");
+  document.querySelectorAll("#statusList button").forEach(b=>b.onclick=()=>applyStatus(b.dataset.status));
+  byId("statusFilter").innerHTML+=statuses.map(x=>`<option>${escapeHtml(x.label)}</option>`).join("");
+  const clients=[...records.reduce((map,x)=>{const v=map.get(x.clientId)||{label:x.client,count:0,value:0};v.count++;v.value+=x.value;map.set(x.clientId,v);return map},new Map()).values()].sort((a,b)=>b.value-a.value).slice(0,5);
+  const maxClient=Math.max(...clients.map(x=>x.value));
+  byId("clientList").innerHTML=clients.map((x,i)=>`<div class="client-row"><span class="rank">0${i+1}</span><div class="client-name"><strong>${escapeHtml(x.label)}</strong><small>${x.count} notas fiscais</small></div><div class="client-bar"><span style="width:${x.value/maxClient*100}%"></span></div><strong class="client-value">${money.format(x.value)}</strong></div>`).join("");
+  byId("search").oninput=()=>{visible=15;renderTable()};
+  byId("statusFilter").onchange=e=>{selectedStatus=e.target.value;visible=15;renderTable()};
+  byId("ageFilter").onchange=e=>{minimumAge=Number(e.target.value);visible=15;renderTable()};
+  byId("sortFilter").onchange=e=>{sorting=e.target.value;visible=15;renderTable()};
+  byId("loadMore").onclick=()=>{visible+=20;renderTable()};
+  renderTable();
+}
+init().catch(()=>{byId("updatedAt").textContent="NÃ£o foi possÃ­vel carregar a base.";});
+
