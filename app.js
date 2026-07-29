@@ -34,7 +34,7 @@ function applyStatus(label){
   renderTable();
 }
 async function init(){
-  const data=await fetch("nfs-compact.json").then(r=>r.json());
+  const data=await fetch("nfs-compact.json?v=3").then(r=>r.json());
   const reference=new Date(`${data.referenceDate}T12:00:00`);
   records=data.records.map(x=>{const emission=new Date(reference);emission.setDate(emission.getDate()-x[1]);return{nf:x[0],age:x[1],emission:emission.toISOString().slice(0,10),clientId:x[2],client:data.clients[x[3]],representative:data.representatives[x[4]],value:x[5],shipment:x[6],octopus:data.statuses[x[7]],group:data.groups[x[8]],region:data.regions[x[9]]}});
   byId("updatedAt").textContent=`Base atualizada em ${data.sourceUpdatedAt}`;
