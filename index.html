@@ -11,20 +11,26 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
   <main>
-    <header class="topbar">
-      <div class="brand"><span class="brand-mark">W</span><div><strong>Wetzel</strong><small>Intelig&#234;ncia Comercial</small></div></div>
-      <div class="update"><span class="live-dot"></span><span id="updatedAt">Carregando base&#8230;</span></div>
-    </header>
     <div class="shell">
-      <section class="hero">
-        <div><p class="eyebrow"><span class="live-dot"></span> ACOMPANHAMENTO DI&#193;RIO</p><h1>Notas fiscais <span>&#8212; Sem sa&#237;da</span></h1><p class="subtitle">Fila operacional priorizada por tempo e valor faturado.</p></div>
-        <div class="hero-callout"><span>Prioridade imediata</span><strong id="criticalCount">&#8212;</strong><small id="criticalValue">acima de 25 dias</small></div>
-      </section>
+      <header class="top">
+        <div><p class="eyebrow"><span class="live-dot"></span> ACOMPANHAMENTO DI&#193;RIO</p><h1>Notas fiscais sem sa&#237;da <span>&#8212; Todos os clientes</span></h1></div>
+        <div class="updated" id="updatedAt">Carregando base&#8230;</div>
+      </header>
       <section class="kpi-grid" id="kpis"></section>
+      <button class="evo-toggle" id="evoToggleGeral"><span class="caret"></span>Ver evolu&#231;&#227;o (D-1 &#183; 7 dias &#183; 30 dias)</button>
+      <section class="evo-panel" id="evoPanelGeral"></section>
+      <section class="region-summary">
+        <table>
+          <thead><tr><th>Regi&#227;o</th><th>NF sem sa&#237;da (R$)</th><th>NF sem sa&#237;da (qtd.)</th><th>Dias sem sa&#237;da (m&#225;x.)</th></tr></thead>
+          <tbody id="regionSummaryBody"></tbody>
+        </table>
+      </section>
+      <button class="evo-toggle" id="evoToggleRegiao"><span class="caret"></span>Ver evolu&#231;&#227;o por regi&#227;o (D-1 &#183; 7 dias &#183; 30 dias)</button>
+      <section class="evo-panel" id="evoPanelRegiao"></section>
       <section class="insight-grid">
         <article class="panel aging-panel">
           <div class="panel-head"><div><p class="panel-kicker">ENVELHECIMENTO</p><h2>Onde a fila est&#225; acumulando</h2></div><div class="metric-toggle"><button id="metricQuantity" class="active">Quantidade</button><button id="metricValue">Valor</button></div></div>
@@ -57,7 +63,7 @@
       <footer><span>Wetzel &#183; Radar de Expedi&#231;&#227;o</span><span id="referenceDate"></span></footer>
     </div>
   </main>
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
 
