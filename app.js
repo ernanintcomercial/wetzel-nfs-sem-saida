@@ -6,7 +6,7 @@ const bands = [
   ["16\u201330 dias",16,30,"#dd7a48"],["31\u201360 dias",31,60,"#cf5058"],["61+ dias",61,Infinity,"#8f2735"]
 ];
 const colors = {"Sem situa\u00e7\u00e3o":"#8994a5","Aguardo Expedi\u00e7\u00e3o":"#d6a34a","N\u00e3o Liberados":"#cf5058","Liberados":"#2f8f83","Em Confer\u00eancia":"#6b79c8"};
-let records=[], filtered=[], visible=15, selectedStatus="Todos", selectedRegion="Todas", minimumAge=0, sorting="age";
+let records=[], filtered=[], visible=15, selectedStatus="Todos", selectedRegion="Todas", minimumAge=0, selectedBand=null, sorting="age";
 const byId = id => document.getElementById(id);
 const sum = (items,field="value") => items.reduce((total,item)=>total+(Number(item[field])||0),0);
 const escapeHtml = value => String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
@@ -16,7 +16,7 @@ function risk(age){
 }
 function renderTable(){
   const q=byId("search").value.trim().toLocaleLowerCase("pt-BR");
-  filtered=records.filter(x=>(selectedStatus==="Todos"||x.octopus===selectedStatus)&&(selectedRegion==="Todas"||x.region===selectedRegion)&&x.age>=minimumAge)
+  filtered=records.filter(x=>(selectedStatus==="Todos"||x.octopus===selectedStatus)&&(selectedRegion==="Todas"||x.region===selectedRegion)&&x.age>=minimumAge&&(!selectedBand||(x.age>=selectedBand.min&&x.age<=selectedBand.max)))
     .filter(x=>!q||[x.nf,x.client,x.representative,x.shipment].join(" ").toLocaleLowerCase("pt-BR").includes(q))
     .sort((a,b)=>sorting==="value"?b.value-a.value:b.age-a.age||b.value-a.value);
   byId("resultCount").textContent=`${integer.format(filtered.length)} resultados`;
@@ -34,7 +34,7 @@ function applyStatus(label){
   renderTable();
 }
 async function init(){
-  const data=await fetch("nfs-compact.json?v=3").then(r=>r.json());
+  const data=await fetch("nfs-compact.json?v=5").then(r=>r.json());
   const reference=new Date(`${data.referenceDate}T12:00:00`);
   records=data.records.map(x=>{const emission=new Date(reference);emission.setDate(emission.getDate()-x[1]);return{nf:x[0],age:x[1],emission:emission.toISOString().slice(0,10),clientId:x[2],client:data.clients[x[3]],representative:data.representatives[x[4]],value:x[5],shipment:x[6],octopus:data.statuses[x[7]],group:data.groups[x[8]],region:data.regions[x[9]]}});
   byId("updatedAt").textContent=`Base atualizada em ${data.sourceUpdatedAt}`;
@@ -52,7 +52,20 @@ async function init(){
   const maxBand=Math.max(...bandData.map(x=>x.count));
   byId("ageChart").innerHTML=bandData.map(x=>`<button class="age-column" data-age="${x.min}" aria-label="Filtrar a partir de ${x.label}"><strong>${x.count}</strong><div class="bar-track"><span style="height:${Math.max(7,x.count/maxBand*100)}%;background:${x.color}"></span></div><small>${x.label}</small><em>${money.format(x.value)}</em></button>`).join("");
   byId("ageNote").insertAdjacentText("beforeend",` Faixas acima de 15 dias concentram ${money.format(sum(old))}.`);
-  document.querySelectorAll(".age-column").forEach(b=>b.onclick=()=>{minimumAge=minimumAge===Number(b.dataset.age)?0:Number(b.dataset.age);byId("ageFilter").value=minimumAge;visible=15;renderTable()});
+  document.querySelectorAll(".age-column").forEach((button,index)=>button.onclick=()=>{
+    const band=bandData[index];
+    const same=selectedBand&&selectedBand.min===band.min;
+    selectedBand=same?null:{min:band.min,max:bands[index][2],label:band.label,count:band.count};
+    minimumAge=0;
+    byId("ageFilter").value="0";
+    document.querySelectorAll(".age-column").forEach(item=>item.classList.toggle("selected",!same&&item===button));
+    byId("ageNote").innerHTML=selectedBand
+      ? `<span></span> Filtro ativo: ${selectedBand.label} \u00b7 ${selectedBand.count} NFs. Clique novamente para limpar.`
+      : `<span></span> Faixas acima de 15 dias concentram ${money.format(sum(old))}.`;
+    visible=15;
+    renderTable();
+    document.querySelector(".table-panel").scrollIntoView({behavior:"smooth",block:"start"});
+  });
   const statuses=[...new Set(records.map(x=>x.octopus))].map(label=>{const items=records.filter(x=>x.octopus===label);return{label,count:items.length,value:sum(items)}}).sort((a,b)=>b.count-a.count);
   let cursor=0; const segments=statuses.map(x=>{const start=cursor;cursor+=x.count/records.length*100;return`${colors[x.label]} ${start}% ${cursor}%`});
   byId("donut").style.background=`conic-gradient(${segments.join(",")})`; byId("donutTotal").textContent=records.length;
@@ -64,7 +77,7 @@ async function init(){
   byId("clientList").innerHTML=clients.map((x,i)=>`<div class="client-row"><span class="rank">0${i+1}</span><div class="client-name"><strong>${escapeHtml(x.label)}</strong><small>${x.count} notas fiscais</small></div><div class="client-bar"><span style="width:${x.value/maxClient*100}%"></span></div><strong class="client-value">${money.format(x.value)}</strong></div>`).join("");
   byId("search").oninput=()=>{visible=15;renderTable()};
   byId("statusFilter").onchange=e=>{selectedStatus=e.target.value;visible=15;renderTable()};
-  byId("ageFilter").onchange=e=>{minimumAge=Number(e.target.value);visible=15;renderTable()};
+  byId("ageFilter").onchange=e=>{minimumAge=Number(e.target.value);selectedBand=null;document.querySelectorAll(".age-column").forEach(item=>item.classList.remove("selected"));visible=15;renderTable()};
   byId("regionFilter").innerHTML+=data.regions.map(x=>`<option>${escapeHtml(x)}</option>`).join("");
   byId("regionFilter").onchange=e=>{selectedRegion=e.target.value;visible=15;renderTable()};
   byId("sortFilter").onchange=e=>{sorting=e.target.value;visible=15;renderTable()};
