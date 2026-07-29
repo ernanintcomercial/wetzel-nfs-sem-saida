@@ -2,17 +2,17 @@ const money = new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",max
 const integer = new Intl.NumberFormat("pt-BR");
 const formatDate = value => new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR");
 const bands = [
-  ["0â€“2 dias",0,2,"#2f8f83"],["3â€“7 dias",3,7,"#58a89c"],["8â€“15 dias",8,15,"#d6a34a"],
-  ["16â€“30 dias",16,30,"#dd7a48"],["31â€“60 dias",31,60,"#cf5058"],["61+ dias",61,Infinity,"#8f2735"]
+  ["0\u20132 dias",0,2,"#2f8f83"],["3\u20137 dias",3,7,"#58a89c"],["8\u201315 dias",8,15,"#d6a34a"],
+  ["16\u201330 dias",16,30,"#dd7a48"],["31\u201360 dias",31,60,"#cf5058"],["61+ dias",61,Infinity,"#8f2735"]
 ];
-const colors = {"Sem situaÃ§Ã£o":"#8994a5","Aguardo ExpediÃ§Ã£o":"#d6a34a","NÃ£o Liberados":"#cf5058","Liberados":"#2f8f83","Em ConferÃªncia":"#6b79c8"};
+const colors = {"Sem situa\u00e7\u00e3o":"#8994a5","Aguardo Expedi\u00e7\u00e3o":"#d6a34a","N\u00e3o Liberados":"#cf5058","Liberados":"#2f8f83","Em Confer\u00eancia":"#6b79c8"};
 let records=[], filtered=[], visible=15, selectedStatus="Todos", selectedRegion="Todas", minimumAge=0, sorting="age";
 const byId = id => document.getElementById(id);
 const sum = (items,field="value") => items.reduce((total,item)=>total+(Number(item[field])||0),0);
 const escapeHtml = value => String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 function risk(age){
-  if(age>=31)return["CrÃ­tico","critical"]; if(age>=16)return["Alerta","warning"];
-  if(age>=8)return["AtenÃ§Ã£o","attention"]; return["Recente","recent"];
+  if(age>=31)return["Cr\u00edtico","critical"]; if(age>=16)return["Alerta","warning"];
+  if(age>=8)return["Aten\u00e7\u00e3o","attention"]; return["Recente","recent"];
 }
 function renderTable(){
   const q=byId("search").value.trim().toLocaleLowerCase("pt-BR");
@@ -22,7 +22,7 @@ function renderTable(){
   byId("resultCount").textContent=`${integer.format(filtered.length)} resultados`;
   byId("tableBody").innerHTML=filtered.slice(0,visible).map(x=>{
     const [label,klass]=risk(x.age);
-    return `<tr><td><span class="risk ${klass}">${label}</span></td><td><strong class="nf">${escapeHtml(x.nf)}</strong><small>${formatDate(x.emission)}</small></td><td><strong>${escapeHtml(x.client)}</strong><small>${escapeHtml(x.group)} Â· Emb. ${escapeHtml(x.shipment)}</small></td><td>${escapeHtml(x.representative)}<small>${escapeHtml(x.region)}</small></td><td><span class="status-pill"><i style="background:${colors[x.octopus]||"#8994a5"}"></i>${escapeHtml(x.octopus)}</span></td><td class="number">${money.format(x.value)}</td><td class="age-cell"><strong>${x.age}</strong><span>dias</span></td></tr>`;
+    return `<tr><td><span class="risk ${klass}">${label}</span></td><td><strong class="nf">${escapeHtml(x.nf)}</strong><small>${formatDate(x.emission)}</small></td><td><strong>${escapeHtml(x.client)}</strong><small>${escapeHtml(x.group)} \u00b7 Emb. ${escapeHtml(x.shipment)}</small></td><td>${escapeHtml(x.representative)}<small>${escapeHtml(x.region)}</small></td><td><span class="status-pill"><i style="background:${colors[x.octopus]||"#8994a5"}"></i>${escapeHtml(x.octopus)}</span></td><td class="number">${money.format(x.value)}</td><td class="age-cell"><strong>${x.age}</strong><span>dias</span></td></tr>`;
   }).join("");
   byId("loadMore").hidden=visible>=filtered.length;
   byId("emptyState").hidden=filtered.length>0;
@@ -38,15 +38,15 @@ async function init(){
   const reference=new Date(`${data.referenceDate}T12:00:00`);
   records=data.records.map(x=>{const emission=new Date(reference);emission.setDate(emission.getDate()-x[1]);return{nf:x[0],age:x[1],emission:emission.toISOString().slice(0,10),clientId:x[2],client:data.clients[x[3]],representative:data.representatives[x[4]],value:x[5],shipment:x[6],octopus:data.statuses[x[7]],group:data.groups[x[8]],region:data.regions[x[9]]}});
   byId("updatedAt").textContent=`Base atualizada em ${data.sourceUpdatedAt}`;
-  byId("referenceDate").textContent=`ReferÃªncia: ${formatDate(data.referenceDate)} Â· SaÃ­da vazia na origem`;
+  byId("referenceDate").textContent=`Refer\u00eancia: ${formatDate(data.referenceDate)} \u00b7 Sa\u00edda vazia na origem`;
   const total=sum(records), critical=records.filter(x=>x.age>=31), old=records.filter(x=>x.age>=16);
   byId("criticalCount").textContent=`${integer.format(critical.length)} NFs`;
-  byId("criticalValue").textContent=`acima de 30 dias Â· ${money.format(sum(critical))}`;
+  byId("criticalValue").textContent=`acima de 30 dias \u00b7 ${money.format(sum(critical))}`;
   byId("kpis").innerHTML=[
-    ["primary","VALOR SEM SAÃDA","R$",money.format(total),"3,7% do faturamento da base"],
-    ["","NOTAS PRIORITÃRIAS","#",integer.format(records.length),`em ${new Set(records.map(x=>x.group)).size} grupos prioritÃ¡rios`],
+    ["primary","VALOR SEM SA\u00cdDA","R$",money.format(total),"3,7% do faturamento da base"],
+    ["","NOTAS PRIORIT\u00c1RIAS","#",integer.format(records.length),`em ${new Set(records.map(x=>x.group)).size} grupos priorit\u00e1rios`],
     ["","ACIMA DE 15 DIAS","!",integer.format(old.length),`${money.format(sum(old))} em risco`],
-    ["critical-card","MAIOR TEMPO","â†—",`${Math.max(...records.map(x=>x.age))} dias`,"desde emissÃ£o da NF"]
+    ["critical-card","MAIOR TEMPO","\u2197",`${Math.max(...records.map(x=>x.age))} dias`,"desde emiss\u00e3o da NF"]
   ].map(x=>`<article class="kpi-card ${x[0]}"><div class="kpi-label"><span>${x[1]}</span><i>${x[2]}</i></div><strong>${x[3]}</strong><p>${x[4]}</p></article>`).join("");
   const bandData=bands.map(([label,min,max,color])=>{const items=records.filter(x=>x.age>=min&&x.age<=max);return{label,min,color,count:items.length,value:sum(items)}});
   const maxBand=Math.max(...bandData.map(x=>x.count));
@@ -71,5 +71,5 @@ async function init(){
   byId("loadMore").onclick=()=>{visible+=20;renderTable()};
   renderTable();
 }
-init().catch(()=>{byId("updatedAt").textContent="NÃ£o foi possÃ­vel carregar a base.";});
+init().catch(()=>{byId("updatedAt").textContent="N\u00e3o foi poss\u00edvel carregar a base.";});
 
