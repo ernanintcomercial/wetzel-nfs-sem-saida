@@ -101,7 +101,7 @@ h1 span { color: var(--teal); font-style: italic; }
 
 .table-panel { padding: 0; overflow: hidden; }
 .table-title { padding: 22px 22px 18px; }
-.filters { display: grid; grid-template-columns: minmax(280px, 1fr) repeat(3, auto); gap: 8px; padding: 12px 22px; background: #f8f9fa; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.filters { display: grid; grid-template-columns: minmax(280px, 1fr) repeat(4, auto); gap: 8px; padding: 12px 22px; background: #f8f9fa; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .search-box { display: flex; align-items: center; gap: 9px; background: white; border: 1px solid var(--line); padding: 0 11px; min-height: 36px; }
 .search-box span { color: #8e98a1; font-size: 18px; }
 .search-box input { border: 0; outline: 0; width: 100%; font-size: 11px; background: transparent; }
