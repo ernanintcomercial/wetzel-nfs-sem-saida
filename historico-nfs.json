@@ -1,0 +1,18 @@
+[
+  {
+    "date": "2026-07-29",
+    "kpis": {
+      "value": 1465588.83,
+      "count": 486,
+      "priorityClients": 47,
+      "maxAge": 61
+    },
+    "regions": [
+      {"label":"SUDESTE","value":755520.62,"count":235,"maxAge":61},
+      {"label":"SUL E CENTRO OESTE","value":381991.05,"count":164,"maxAge":58},
+      {"label":"NORTE E NORDESTE","value":225497.07,"count":54,"maxAge":49},
+      {"label":"SEM REGI\u00c3O / N\u00c3O MAPEADO","value":102580.09,"count":33,"maxAge":43}
+    ]
+  }
+]
+
