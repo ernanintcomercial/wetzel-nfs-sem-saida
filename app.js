@@ -6,7 +6,7 @@ const bands = [
   ["16\u201330 dias",16,30,"#dd7a48"],["31\u201360 dias",31,60,"#cf5058"],["61+ dias",61,Infinity,"#8f2735"]
 ];
 const colors = {"Sem situa\u00e7\u00e3o":"#8994a5","Aguardo Expedi\u00e7\u00e3o":"#d6a34a","N\u00e3o Liberados":"#cf5058","Liberados":"#2f8f83","Em Confer\u00eancia":"#6b79c8"};
-let records=[], filtered=[], visible=15, selectedStatus="Todos", selectedRegion="Todas", selectedPriority="Todas", minimumAge=0, selectedBand=null, sorting="age", metricMode="count";
+let records=[], filtered=[], visible=15, selectedStatus="Todos", selectedRegion="Todas", selectedPriority="Todas", minimumAge=0, selectedBand=null, sorting="age", metricMode="value";
 const byId = id => document.getElementById(id);
 const sum = (items,field="value") => items.reduce((total,item)=>total+(Number(item[field])||0),0);
 const escapeHtml = value => String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
