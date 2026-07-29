@@ -6,7 +6,7 @@ const bands = [
   ["16â€“30 dias",16,30,"#dd7a48"],["31â€“60 dias",31,60,"#cf5058"],["61+ dias",61,Infinity,"#8f2735"]
 ];
 const colors = {"Sem situaÃ§Ã£o":"#8994a5","Aguardo ExpediÃ§Ã£o":"#d6a34a","NÃ£o Liberados":"#cf5058","Liberados":"#2f8f83","Em ConferÃªncia":"#6b79c8"};
-let records=[], filtered=[], visible=15, selectedStatus="Todos", minimumAge=0, sorting="age";
+let records=[], filtered=[], visible=15, selectedStatus="Todos", selectedRegion="Todas", minimumAge=0, sorting="age";
 const byId = id => document.getElementById(id);
 const sum = (items,field="value") => items.reduce((total,item)=>total+(Number(item[field])||0),0);
 const escapeHtml = value => String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
@@ -16,13 +16,13 @@ function risk(age){
 }
 function renderTable(){
   const q=byId("search").value.trim().toLocaleLowerCase("pt-BR");
-  filtered=records.filter(x=>(selectedStatus==="Todos"||x.octopus===selectedStatus)&&x.age>=minimumAge)
+  filtered=records.filter(x=>(selectedStatus==="Todos"||x.octopus===selectedStatus)&&(selectedRegion==="Todas"||x.region===selectedRegion)&&x.age>=minimumAge)
     .filter(x=>!q||[x.nf,x.client,x.representative,x.shipment].join(" ").toLocaleLowerCase("pt-BR").includes(q))
     .sort((a,b)=>sorting==="value"?b.value-a.value:b.age-a.age||b.value-a.value);
   byId("resultCount").textContent=`${integer.format(filtered.length)} resultados`;
   byId("tableBody").innerHTML=filtered.slice(0,visible).map(x=>{
     const [label,klass]=risk(x.age);
-    return `<tr><td><span class="risk ${klass}">${label}</span></td><td><strong class="nf">${escapeHtml(x.nf)}</strong><small>${formatDate(x.emission)}</small></td><td><strong>${escapeHtml(x.client)}</strong><small>ID ${escapeHtml(x.clientId)} Â· Emb. ${escapeHtml(x.shipment)}</small></td><td>${escapeHtml(x.representative)}</td><td><span class="status-pill"><i style="background:${colors[x.octopus]||"#8994a5"}"></i>${escapeHtml(x.octopus)}</span></td><td class="number">${money.format(x.value)}</td><td class="age-cell"><strong>${x.age}</strong><span>dias</span></td></tr>`;
+    return `<tr><td><span class="risk ${klass}">${label}</span></td><td><strong class="nf">${escapeHtml(x.nf)}</strong><small>${formatDate(x.emission)}</small></td><td><strong>${escapeHtml(x.client)}</strong><small>${escapeHtml(x.group)} Â· Emb. ${escapeHtml(x.shipment)}</small></td><td>${escapeHtml(x.representative)}<small>${escapeHtml(x.region)}</small></td><td><span class="status-pill"><i style="background:${colors[x.octopus]||"#8994a5"}"></i>${escapeHtml(x.octopus)}</span></td><td class="number">${money.format(x.value)}</td><td class="age-cell"><strong>${x.age}</strong><span>dias</span></td></tr>`;
   }).join("");
   byId("loadMore").hidden=visible>=filtered.length;
   byId("emptyState").hidden=filtered.length>0;
@@ -34,7 +34,9 @@ function applyStatus(label){
   renderTable();
 }
 async function init(){
-  const data=await fetch("nfs.json").then(r=>r.json()); records=data.records;
+  const data=await fetch("nfs-compact.json").then(r=>r.json());
+  const reference=new Date(`${data.referenceDate}T12:00:00`);
+  records=data.records.map(x=>{const emission=new Date(reference);emission.setDate(emission.getDate()-x[1]);return{nf:x[0],age:x[1],emission:emission.toISOString().slice(0,10),clientId:x[2],client:data.clients[x[3]],representative:data.representatives[x[4]],value:x[5],shipment:x[6],octopus:data.statuses[x[7]],group:data.groups[x[8]],region:data.regions[x[9]]}});
   byId("updatedAt").textContent=`Base atualizada em ${data.sourceUpdatedAt}`;
   byId("referenceDate").textContent=`ReferÃªncia: ${formatDate(data.referenceDate)} Â· SaÃ­da vazia na origem`;
   const total=sum(records), critical=records.filter(x=>x.age>=31), old=records.filter(x=>x.age>=16);
@@ -42,7 +44,7 @@ async function init(){
   byId("criticalValue").textContent=`acima de 30 dias Â· ${money.format(sum(critical))}`;
   byId("kpis").innerHTML=[
     ["primary","VALOR SEM SAÃDA","R$",money.format(total),"3,7% do faturamento da base"],
-    ["","NOTAS PENDENTES","#",integer.format(records.length),`em ${new Set(records.map(x=>x.clientId)).size} clientes`],
+    ["","NOTAS PRIORITÃRIAS","#",integer.format(records.length),`em ${new Set(records.map(x=>x.group)).size} grupos prioritÃ¡rios`],
     ["","ACIMA DE 15 DIAS","!",integer.format(old.length),`${money.format(sum(old))} em risco`],
     ["critical-card","MAIOR TEMPO","â†—",`${Math.max(...records.map(x=>x.age))} dias`,"desde emissÃ£o da NF"]
   ].map(x=>`<article class="kpi-card ${x[0]}"><div class="kpi-label"><span>${x[1]}</span><i>${x[2]}</i></div><strong>${x[3]}</strong><p>${x[4]}</p></article>`).join("");
@@ -57,12 +59,14 @@ async function init(){
   byId("statusList").innerHTML=statuses.map(x=>`<button data-status="${escapeHtml(x.label)}"><span class="legend-dot" style="background:${colors[x.label]}"></span><span>${escapeHtml(x.label)}</span><strong>${x.count}</strong><small>${money.format(x.value)}</small></button>`).join("");
   document.querySelectorAll("#statusList button").forEach(b=>b.onclick=()=>applyStatus(b.dataset.status));
   byId("statusFilter").innerHTML+=statuses.map(x=>`<option>${escapeHtml(x.label)}</option>`).join("");
-  const clients=[...records.reduce((map,x)=>{const v=map.get(x.clientId)||{label:x.client,count:0,value:0};v.count++;v.value+=x.value;map.set(x.clientId,v);return map},new Map()).values()].sort((a,b)=>b.value-a.value).slice(0,5);
+  const clients=[...records.reduce((map,x)=>{const v=map.get(x.group)||{label:x.group,count:0,value:0};v.count++;v.value+=x.value;map.set(x.group,v);return map},new Map()).values()].sort((a,b)=>b.value-a.value).slice(0,5);
   const maxClient=Math.max(...clients.map(x=>x.value));
   byId("clientList").innerHTML=clients.map((x,i)=>`<div class="client-row"><span class="rank">0${i+1}</span><div class="client-name"><strong>${escapeHtml(x.label)}</strong><small>${x.count} notas fiscais</small></div><div class="client-bar"><span style="width:${x.value/maxClient*100}%"></span></div><strong class="client-value">${money.format(x.value)}</strong></div>`).join("");
   byId("search").oninput=()=>{visible=15;renderTable()};
   byId("statusFilter").onchange=e=>{selectedStatus=e.target.value;visible=15;renderTable()};
   byId("ageFilter").onchange=e=>{minimumAge=Number(e.target.value);visible=15;renderTable()};
+  byId("regionFilter").innerHTML+=data.regions.map(x=>`<option>${escapeHtml(x)}</option>`).join("");
+  byId("regionFilter").onchange=e=>{selectedRegion=e.target.value;visible=15;renderTable()};
   byId("sortFilter").onchange=e=>{sorting=e.target.value;visible=15;renderTable()};
   byId("loadMore").onclick=()=>{visible+=20;renderTable()};
   renderTable();
