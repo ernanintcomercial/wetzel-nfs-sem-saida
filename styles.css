@@ -59,7 +59,7 @@ h1 span { color: var(--teal); font-style: italic; }
 .panel-head { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
 .panel-head h2 { font-family: Georgia, serif; font-size: 21px; margin: 0; font-weight: 500; }
 .metric-toggle { display: flex; background: var(--paper); padding: 3px; gap: 2px; }
-.metric-toggle button { border: 0; background: transparent; color: var(--muted); padding: 6px 9px; font-size: 10px; cursor: default; }
+.metric-toggle button { border: 0; background: transparent; color: var(--muted); padding: 6px 9px; font-size: 10px; cursor: pointer; }
 .metric-toggle .active { background: white; color: var(--ink); box-shadow: 0 1px 3px #ccd2d6; }
 
 .age-chart { height: 220px; padding-top: 20px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; align-items: end; border-bottom: 1px solid var(--line); }
@@ -101,7 +101,7 @@ h1 span { color: var(--teal); font-style: italic; }
 
 .table-panel { padding: 0; overflow: hidden; }
 .table-title { padding: 22px 22px 18px; }
-.filters { display: grid; grid-template-columns: minmax(280px, 1fr) repeat(4, auto); gap: 8px; padding: 12px 22px; background: #f8f9fa; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.filters { display: grid; grid-template-columns: minmax(280px, 1fr) repeat(5, auto); gap: 8px; padding: 12px 22px; background: #f8f9fa; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .search-box { display: flex; align-items: center; gap: 9px; background: white; border: 1px solid var(--line); padding: 0 11px; min-height: 36px; }
 .search-box span { color: #8e98a1; font-size: 18px; }
 .search-box input { border: 0; outline: 0; width: 100%; font-size: 11px; background: transparent; }
@@ -112,6 +112,8 @@ th { font-size: 9px; letter-spacing: .08em; color: #7e8892; text-transform: uppe
 td { font-size: 10px; padding: 12px 14px; border-bottom: 1px solid #edf0f2; vertical-align: middle; }
 tbody tr:hover { background: #fbfcfc; }
 td small { display: block; color: var(--muted); font-size: 9px; margin-top: 3px; }
+.priority-flag { display: inline-block; margin-top: 5px; padding: 2px 6px; border-radius: 9px; background: #e3f2ee; color: #23766c; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.priority-flag.standard { background: #eef1f3; color: #7b858e; }
 .nf { font-family: "Courier New", monospace; font-size: 11px; }
 .risk { display: inline-flex; padding: 5px 7px; text-transform: uppercase; letter-spacing: .05em; font-size: 8px; font-weight: 800; }
 .risk.critical { background: var(--red-soft); color: var(--red); }
