@@ -8,7 +8,7 @@
   <meta property="og:title" content="Radar de Expedi&#231;&#227;o | Wetzel">
   <meta property="og:description" content="Fila operacional priorizada por tempo e valor faturado.">
   <meta property="og:image" content="https://ernanintcomercial.github.io/wetzel-nfs-sem-saida/og.png">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
   <main>
@@ -19,12 +19,12 @@
     <div class="shell">
       <section class="hero">
         <div><p class="eyebrow">RADAR DE EXPEDI&#199;&#195;O</p><h1>Notas fiscais <span>sem sa&#237;da</span></h1><p class="subtitle">Fila operacional priorizada por tempo e valor faturado.</p></div>
-        <div class="hero-callout"><span>Prioridade imediata</span><strong id="criticalCount">&#8212;</strong><small id="criticalValue">acima de 30 dias</small></div>
+        <div class="hero-callout"><span>Prioridade imediata</span><strong id="criticalCount">&#8212;</strong><small id="criticalValue">acima de 25 dias</small></div>
       </section>
       <section class="kpi-grid" id="kpis"></section>
       <section class="insight-grid">
         <article class="panel aging-panel">
-          <div class="panel-head"><div><p class="panel-kicker">ENVELHECIMENTO</p><h2>Onde a fila est&#225; acumulando</h2></div><div class="metric-toggle"><button class="active">Quantidade</button><button>Valor</button></div></div>
+          <div class="panel-head"><div><p class="panel-kicker">ENVELHECIMENTO</p><h2>Onde a fila est&#225; acumulando</h2></div><div class="metric-toggle"><button id="metricQuantity" class="active">Quantidade</button><button id="metricValue">Valor</button></div></div>
           <div class="age-chart" id="ageChart"></div>
           <p class="chart-note" id="ageNote"><span></span></p>
         </article>
@@ -38,11 +38,12 @@
         <div class="client-list" id="clientList"></div>
       </section>
       <section class="panel table-panel">
-        <div class="panel-head table-title"><div><p class="panel-kicker">FILA DE A&#199;&#195;O</p><h2>Notas fiscais priorizadas</h2></div><span class="result-count" id="resultCount"></span></div>
+        <div class="panel-head table-title"><div><p class="panel-kicker">FILA DE A&#199;&#195;O</p><h2>Todas as notas fiscais sem sa&#237;da</h2></div><span class="result-count" id="resultCount"></span></div>
         <div class="filters">
           <label class="search-box"><span>&#8981;</span><input id="search" placeholder="Buscar NF, cliente, representante ou embarque&#8230;"></label>
           <select id="statusFilter" aria-label="Filtrar situa&#231;&#227;o"><option>Todos</option></select>
-          <select id="ageFilter" aria-label="Filtrar idade"><option value="0">Todas as idades</option><option value="8">8+ dias</option><option value="16">16+ dias</option><option value="31">31+ dias</option></select>
+          <select id="priorityFilter" aria-label="Filtrar prioridade"><option value="Todas">Todos os clientes</option><option value="Priorit&#225;rias">Somente priorit&#225;rios</option><option value="N&#227;o priorit&#225;rias">Somente n&#227;o priorit&#225;rios</option></select>
+          <select id="ageFilter" aria-label="Filtrar idade"><option value="0">Todas as idades</option><option value="8">8+ dias</option><option value="16">16+ dias</option><option value="25">25+ dias</option><option value="31">31+ dias</option></select>
           <select id="regionFilter" aria-label="Filtrar regi&#227;o"><option value="Todas">Todas as regi&#245;es</option></select>
           <select id="sortFilter" aria-label="Ordenar"><option value="age">Maior atraso</option><option value="value">Maior valor</option></select>
         </div>
@@ -53,7 +54,7 @@
       <footer><span>Wetzel &#183; Radar de Expedi&#231;&#227;o</span><span id="referenceDate"></span></footer>
     </div>
   </main>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
 
