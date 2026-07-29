@@ -33,21 +33,55 @@ function applyStatus(label){
   document.querySelectorAll("#statusList button").forEach(b=>b.classList.toggle("active",b.dataset.status===selectedStatus));
   renderTable();
 }
+const evolutionPoints=[["D-1",1],["7 dias",7],["30 dias",30]];
+const isoShift=(date,days)=>{const d=new Date(`${date}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)};
+const dayDistance=(a,b)=>Math.round((new Date(`${a}T00:00:00Z`)-new Date(`${b}T00:00:00Z`))/86400000);
+function nearestSnapshot(history,target,currentDate){
+  return history.filter(x=>x.date!==currentDate).map(x=>({item:x,distance:Math.abs(dayDistance(x.date,target))})).filter(x=>x.distance<=2).sort((a,b)=>a.distance-b.distance)[0]?.item||null;
+}
+function comparisonCell(current,previous,formatter){
+  if(previous===null||previous===undefined)return`<span class="no-data">sem dado</span>`;
+  const delta=current-previous,klass=delta>0?"worse":delta<0?"better":"same",sign=delta>0?"+":"";
+  return`${formatter(previous)} <span class="evo-delta ${klass}">(${sign}${formatter(delta)})</span>`;
+}
+function evolutionRow(label,current,history,currentDate,getter,formatter){
+  const comparisons=evolutionPoints.map(([,days])=>{const snapshot=nearestSnapshot(history,isoShift(currentDate,-days),currentDate);return`<td>${comparisonCell(current,snapshot?getter(snapshot):null,formatter)}</td>`}).join("");
+  return`<tr><td>${label}</td><td>${formatter(current)}</td>${comparisons}</tr>`;
+}
+function evolutionHeader(){return`<thead><tr><th>M\u00e9trica</th><th>Hoje</th>${evolutionPoints.map(x=>`<th>${x[0]}</th>`).join("")}</tr></thead>`}
 async function init(){
   const data=await fetch("nfs-compact.json?v=6").then(r=>r.json());
   const reference=new Date(`${data.referenceDate}T12:00:00`);
   records=data.records.map(x=>{const emission=new Date(reference);emission.setDate(emission.getDate()-x[1]);return{nf:x[0],age:x[1],emission:emission.toISOString().slice(0,10),clientId:x[2],client:data.clients[x[3]],representative:data.representatives[x[4]],value:x[5],shipment:x[6],octopus:data.statuses[x[7]],group:data.groups[x[8]],region:data.regions[x[9]],priority:Boolean(x[10])}});
-  byId("updatedAt").textContent=`Base atualizada em ${data.sourceUpdatedAt}`;
+  byId("updatedAt").innerHTML=`Atualizado em: <b>${data.sourceUpdatedAt}</b><br>Refer\u00eancia da base: ${formatDate(data.referenceDate)}`;
   byId("referenceDate").textContent=`Refer\u00eancia: ${formatDate(data.referenceDate)} \u00b7 Sa\u00edda vazia na origem`;
   const total=sum(records), critical=records.filter(x=>x.age>=25), old=records.filter(x=>x.age>=16), priority=records.filter(x=>x.priority);
-  byId("criticalCount").textContent=`${integer.format(critical.length)} NFs`;
-  byId("criticalValue").textContent=`acima de 25 dias \u00b7 ${money.format(sum(critical))}`;
+  const priorityClients=new Set(priority.map(x=>x.clientId)).size;
   byId("kpis").innerHTML=[
     ["primary","VALOR SEM SA\u00cdDA","R$",money.format(total),"3,7% do faturamento da base"],
     ["","NOTAS SEM SA\u00cdDA","#",integer.format(records.length),`em ${new Set(records.map(x=>x.clientId)).size} clientes`],
-    ["","CLIENTES PRIORIT\u00c1RIOS","!",integer.format(priority.length),`${money.format(sum(priority))} em NFs priorit\u00e1rias`],
+    ["","CLIENTES PRIORIT\u00c1RIOS AFETADOS","!",integer.format(priorityClients),`${integer.format(priority.length)} NFs priorit\u00e1rias`],
     ["critical-card","MAIOR TEMPO","\u2197",`${Math.max(...records.map(x=>x.age))} dias`,"desde emiss\u00e3o da NF"]
   ].map(x=>`<article class="kpi-card ${x[0]}"><div class="kpi-label"><span>${x[1]}</span><i>${x[2]}</i></div><strong>${x[3]}</strong><p>${x[4]}</p></article>`).join("");
+  const regionRows=data.regions.map(region=>{const items=records.filter(x=>x.region===region);return{label:region,value:sum(items),count:items.length,maxAge:Math.max(...items.map(x=>x.age))}});
+  byId("regionSummaryBody").innerHTML=regionRows.map(x=>`<tr><td>${escapeHtml(x.label)}</td><td>${money.format(x.value)}</td><td>${integer.format(x.count)}</td><td>${integer.format(x.maxAge)}</td></tr>`).join("");
+  const currentSnapshot={date:data.referenceDate,kpis:{value:total,count:records.length,priorityClients,maxAge:Math.max(...records.map(x=>x.age))},regions:regionRows};
+  let history=[];try{history=await fetch("historico-nfs.json?v=8").then(r=>r.ok?r.json():[])}catch{}
+  const generalRows=[
+    evolutionRow("NF sem sa\u00edda (R$)",currentSnapshot.kpis.value,history,data.referenceDate,x=>x.kpis.value,money.format),
+    evolutionRow("Quantidade de NFs",currentSnapshot.kpis.count,history,data.referenceDate,x=>x.kpis.count,integer.format),
+    evolutionRow("Clientes priorit\u00e1rios afetados",currentSnapshot.kpis.priorityClients,history,data.referenceDate,x=>x.kpis.priorityClients,integer.format),
+    evolutionRow("Maior tempo sem sa\u00edda (dias)",currentSnapshot.kpis.maxAge,history,data.referenceDate,x=>x.kpis.maxAge,integer.format)
+  ].join("");
+  byId("evoPanelGeral").innerHTML=`<table>${evolutionHeader()}<tbody>${generalRows}</tbody></table><div class="evo-help">Varia\u00e7\u00e3o entre par\u00eanteses compara Hoje com cada snapshot. Aumento aparece em vermelho; redu\u00e7\u00e3o, em verde.</div>`;
+  byId("evoPanelRegiao").innerHTML=`<table>${evolutionHeader()}<tbody>${regionRows.map(region=>{
+    const rowHistory=history.map(snapshot=>({...snapshot,region:(snapshot.regions||[]).find(x=>x.label===region.label)}));
+    return`<tr class="region-title"><td colspan="5">${escapeHtml(region.label)}</td></tr>`+
+      evolutionRow("NF sem sa\u00edda (R$)",region.value,rowHistory,data.referenceDate,x=>x.region?.value,money.format)+
+      evolutionRow("Quantidade de NFs",region.count,rowHistory,data.referenceDate,x=>x.region?.count,integer.format)+
+      evolutionRow("Maior tempo (dias)",region.maxAge,rowHistory,data.referenceDate,x=>x.region?.maxAge,integer.format);
+  }).join("")}</tbody></table>`;
+  ["Geral","Regiao"].forEach(name=>byId(`evoToggle${name}`).onclick=()=>{byId(`evoToggle${name}`).classList.toggle("open");byId(`evoPanel${name}`).classList.toggle("open")});
   const bandData=bands.map(([label,min,max,color])=>{const items=records.filter(x=>x.age>=min&&x.age<=max);return{label,min,color,count:items.length,value:sum(items)}});
   byId("ageNote").insertAdjacentText("beforeend",` Faixas acima de 15 dias concentram ${money.format(sum(old))}.`);
   function drawAgeChart(){
