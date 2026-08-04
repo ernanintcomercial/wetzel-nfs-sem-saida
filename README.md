@@ -11,3 +11,5 @@ Os pontos de 29/07 e 04/08 são snapshots reais. Os pontos de 30/07 a 03/08 fora
 ```powershell
 python tools/update_from_xlsx.py "C:\caminho\Detalhamento de Notas Fiscais.xlsx" --groups "C:\caminho\Extração em Tabela (30).xlsx" --regions "C:\caminho\INDEX.xlsx"
 ```
+
+Representantes presentes no `INDEX.xlsx` usam a região nele definida. Para representantes nacionais sem região própria no índice, cada NF é classificada pela UF do cliente na linha da venda.
