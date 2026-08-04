@@ -10,6 +10,14 @@ let records=[], filtered=[], visible=15, selectedStatus="Todos", selectedRegion=
 const byId = id => document.getElementById(id);
 const sum = (items,field="value") => items.reduce((total,item)=>total+(Number(item[field])||0),0);
 const escapeHtml = value => String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+function setTheme(theme){
+  const selected=theme==="light"?"light":"dark";
+  document.documentElement.dataset.theme=selected;
+  try{localStorage.setItem("wetzel-theme",selected)}catch{}
+  document.querySelectorAll("[data-theme-option]").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.themeOption===selected)));
+}
+document.querySelectorAll("[data-theme-option]").forEach(button=>button.onclick=()=>setTheme(button.dataset.themeOption));
+setTheme(document.documentElement.dataset.theme);
 function risk(age){
   if(age>=31)return["Cr\u00edtico","critical"]; if(age>=16)return["Alerta","warning"];
   if(age>=8)return["Aten\u00e7\u00e3o","attention"]; return["Recente","recent"];
