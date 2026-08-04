@@ -5,7 +5,7 @@ const bands = [
   ["0\u20132 dias",0,2,"#2f8f83"],["3\u20137 dias",3,7,"#58a89c"],["8\u201315 dias",8,15,"#d6a34a"],
   ["16\u201330 dias",16,30,"#dd7a48"],["31\u201360 dias",31,60,"#cf5058"],["61+ dias",61,Infinity,"#8f2735"]
 ];
-const colors = {"Sem situa\u00e7\u00e3o":"#8994a5","Aguardo Expedi\u00e7\u00e3o":"#d6a34a","N\u00e3o Liberados":"#cf5058","Liberados":"#2f8f83","Em Confer\u00eancia":"#6b79c8"};
+const colors = {"Sem situa\u00e7\u00e3o":"#8994a5","Aguardo Expedi\u00e7\u00e3o":"#d6a34a","N\u00e3o Liberados":"#cf5058","Liberados":"#2f8f83","Em Confer\u00eancia":"#6b79c8","Embarque Expedido":"#4f8fba","Em Separa\u00e7\u00e3o":"#a56cc1"};
 let records=[], filtered=[], visible=15, selectedStatus="Todos", selectedRegion="Todas", selectedPriority="Todas", minimumAge=0, selectedBand=null, sorting="age", metricMode="value";
 const byId = id => document.getElementById(id);
 const sum = (items,field="value") => items.reduce((total,item)=>total+(Number(item[field])||0),0);
@@ -100,7 +100,7 @@ async function init(){
   byId("metricValue").onclick=()=>{metricMode="value";byId("metricValue").classList.add("active");byId("metricQuantity").classList.remove("active");drawAgeChart()};
   drawAgeChart();
   const statuses=[...new Set(records.map(x=>x.octopus))].map(label=>{const items=records.filter(x=>x.octopus===label);return{label,count:items.length,value:sum(items)}}).sort((a,b)=>b.count-a.count);
-  let cursor=0; const segments=statuses.map(x=>{const start=cursor;cursor+=x.count/records.length*100;return`${colors[x.label]} ${start}% ${cursor}%`});
+  let cursor=0; const segments=statuses.map(x=>{const start=cursor;cursor+=x.count/records.length*100;return`${colors[x.label]||"#8994a5"} ${start}% ${cursor}%`});
   byId("donut").style.background=`conic-gradient(${segments.join(",")})`; byId("donutTotal").textContent=records.length;
   byId("statusList").innerHTML=statuses.map(x=>`<button data-status="${escapeHtml(x.label)}"><span class="legend-dot" style="background:${colors[x.label]}"></span><span>${escapeHtml(x.label)}</span><strong>${x.count}</strong><small>${money.format(x.value)}</small></button>`).join("");
   document.querySelectorAll("#statusList button").forEach(b=>b.onclick=()=>applyStatus(b.dataset.status));
