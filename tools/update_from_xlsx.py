@@ -1,5 +1,6 @@
 import argparse
 import json
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 
@@ -12,6 +13,16 @@ REGION_MAP = {
     "NORTE   NORDESTE": "NORTE E NORDESTE",
 }
 UNMAPPED_REGION = "SEM REGIÃO / NÃO MAPEADO"
+UF_REGIONS = {
+    "ESPIRITO SANTO": "SUDESTE", "MINAS GERAIS": "SUDESTE", "RIO DE JANEIRO": "SUDESTE", "SAO PAULO": "SUDESTE",
+    "DISTRITO FEDERAL": "SUL E CENTRO OESTE", "GOIAS": "SUL E CENTRO OESTE", "MATO GROSSO": "SUL E CENTRO OESTE",
+    "MATO GROSSO DO SUL": "SUL E CENTRO OESTE", "PARANA": "SUL E CENTRO OESTE", "RIO GRANDE DO SUL": "SUL E CENTRO OESTE",
+    "SANTA CATARINA": "SUL E CENTRO OESTE",
+    "ACRE": "NORTE E NORDESTE", "ALAGOAS": "NORTE E NORDESTE", "AMAPA": "NORTE E NORDESTE", "AMAZONAS": "NORTE E NORDESTE",
+    "BAHIA": "NORTE E NORDESTE", "CEARA": "NORTE E NORDESTE", "MARANHAO": "NORTE E NORDESTE", "PARA": "NORTE E NORDESTE",
+    "PARAIBA": "NORTE E NORDESTE", "PERNAMBUCO": "NORTE E NORDESTE", "PIAUI": "NORTE E NORDESTE", "RIO GRANDE DO NORTE": "NORTE E NORDESTE",
+    "RONDONIA": "NORTE E NORDESTE", "RORAIMA": "NORTE E NORDESTE", "SERGIPE": "NORTE E NORDESTE", "TOCANTINS": "NORTE E NORDESTE",
+}
 
 
 def text(value, default=""):
@@ -23,6 +34,15 @@ def text(value, default=""):
 def identifier(value):
     number = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
     return "" if pd.isna(number) else str(int(number))
+
+
+def normalize(value):
+    raw = unicodedata.normalize("NFKD", text(value).upper())
+    return " ".join("".join(ch for ch in raw if not unicodedata.combining(ch)).split())
+
+
+def resolve_region(representative_id, uf, regions):
+    return regions.get(representative_id) or UF_REGIONS.get(normalize(uf), UNMAPPED_REGION)
 
 
 def iso_date(value):
@@ -71,7 +91,7 @@ def enrich_row(row, reference_date, groups, regions):
         "octopus": raw_status or "Sem situação",
         "release": iso_date(row["Lib Octopus"]),
         "group": group,
-        "region": regions.get(representative_id, UNMAPPED_REGION),
+        "region": resolve_region(representative_id, row["Localização - UF"], regions),
         "priority": client_id in groups,
     }
 
@@ -102,11 +122,11 @@ def compact_payload(reference_date, source_updated_at, records):
     return {"referenceDate": reference_date.strftime("%Y-%m-%d"), "sourceUpdatedAt": source_updated_at, **dimensions, "records": rows}
 
 
-def snapshot(df, date, groups, regions, reconstructed=True):
-    current = df[(df["Emissão"] <= date) & (df["Saída"].isna() | (df["Saída"] > date))].copy()
+def summarize_snapshot(current, date, groups, regions, reconstructed):
+    current = current.copy()
     current["clientId"] = current["ID Cliente"].map(identifier)
     current["representativeId"] = current["ID Representante"].map(identifier)
-    current["region"] = current["representativeId"].map(regions).fillna(UNMAPPED_REGION)
+    current["region"] = [resolve_region(rid, uf, regions) for rid, uf in zip(current["representativeId"], current["Localização - UF"])]
     current["priority"] = current["clientId"].isin(groups)
     region_rows = []
     for region in ["SUDESTE", "SUL E CENTRO OESTE", "NORTE E NORDESTE", UNMAPPED_REGION]:
@@ -133,16 +153,40 @@ def snapshot(df, date, groups, regions, reconstructed=True):
     return result
 
 
+def snapshot(df, date, groups, regions, reconstructed=True):
+    current = df[(df["Emissão"] <= date) & (df["Saída"].isna() | (df["Saída"] > date))]
+    return summarize_snapshot(current, date, groups, regions, reconstructed)
+
+
+def actual_snapshot(df, date, groups, regions, uf_lookup):
+    if "Localização - UF" not in df.columns:
+        df = df.copy()
+        df["Localização - UF"] = pd.to_numeric(df["NF"], errors="coerce").map(uf_lookup)
+        representative_ids = df["ID Representante"].map(identifier)
+        missing = int((df["Saída"].isna() & df["Localização - UF"].isna() & ~representative_ids.isin(regions)).sum())
+        if missing:
+            raise ValueError(f"{missing} NFs do snapshot real ficaram sem UF após a conciliação por NF")
+    return summarize_snapshot(df[df["Saída"].isna()], date, groups, regions, reconstructed=False)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
     parser.add_argument("--groups", type=Path, required=True)
     parser.add_argument("--regions", type=Path, required=True)
     parser.add_argument("--history-start", default="2026-07-30")
+    parser.add_argument("--actual-snapshot", action="append", default=[], metavar="DATE=PATH")
     args = parser.parse_args()
 
     repo = Path(__file__).resolve().parents[1]
     df = load_source(args.source)
+    uf_lookup = (
+        df.assign(_nf=pd.to_numeric(df["NF"], errors="coerce"))
+        .dropna(subset=["_nf", "Localização - UF"])
+        .drop_duplicates("_nf")
+        .set_index("_nf")["Localização - UF"]
+        .to_dict()
+    )
     groups = load_group_map(args.groups)
     regions = load_region_map(args.regions)
     reference_date = df["Emissão"].max().normalize()
@@ -159,6 +203,10 @@ def main():
     history_path = repo / "historico-nfs.json"
     history = json.loads(history_path.read_text(encoding="utf-8")) if history_path.exists() else []
     preserved = {item["date"]: item for item in history if item["date"] < args.history_start}
+    for specification in args.actual_snapshot:
+        date_text, source_text = specification.split("=", 1)
+        snapshot_date = pd.Timestamp(date_text).normalize()
+        preserved[date_text] = actual_snapshot(load_source(Path(source_text)), snapshot_date, groups, regions, uf_lookup)
     for date in pd.date_range(args.history_start, reference_date, freq="D"):
         preserved[date.strftime("%Y-%m-%d")] = snapshot(
             df, date, groups, regions, reconstructed=date.normalize() != reference_date

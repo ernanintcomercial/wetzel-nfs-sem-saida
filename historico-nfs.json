@@ -10,27 +10,27 @@
     "regions": [
       {
         "label": "SUDESTE",
-        "value": 755520.62,
-        "count": 235,
+        "value": 778575.32,
+        "count": 247,
         "maxAge": 61
       },
       {
         "label": "SUL E CENTRO OESTE",
-        "value": 381991.05,
-        "count": 164,
+        "value": 446648.24,
+        "count": 179,
         "maxAge": 58
       },
       {
         "label": "NORTE E NORDESTE",
-        "value": 225497.07,
-        "count": 54,
+        "value": 240365.27,
+        "count": 60,
         "maxAge": 49
       },
       {
         "label": "SEM REGIÃO / NÃO MAPEADO",
-        "value": 102580.09,
-        "count": 33,
-        "maxAge": 43
+        "value": 0.0,
+        "count": 0,
+        "maxAge": 0
       }
     ]
   },
@@ -45,27 +45,27 @@
     "regions": [
       {
         "label": "SUDESTE",
-        "value": 792762.08,
-        "count": 185,
+        "value": 802031.51,
+        "count": 192,
         "maxAge": 62
       },
       {
         "label": "SUL E CENTRO OESTE",
-        "value": 431531.14,
-        "count": 158,
+        "value": 463374.06,
+        "count": 169,
         "maxAge": 59
       },
       {
         "label": "NORTE E NORDESTE",
-        "value": 254717.95,
-        "count": 54,
+        "value": 269586.15,
+        "count": 60,
         "maxAge": 50
       },
       {
         "label": "SEM REGIÃO / NÃO MAPEADO",
-        "value": 55980.55,
-        "count": 24,
-        "maxAge": 44
+        "value": 0.0,
+        "count": 0,
+        "maxAge": 0
       }
     ],
     "reconstructed": true,
@@ -82,27 +82,27 @@
     "regions": [
       {
         "label": "SUDESTE",
-        "value": 1154211.41,
-        "count": 219,
+        "value": 1158778.37,
+        "count": 223,
         "maxAge": 51
       },
       {
         "label": "SUL E CENTRO OESTE",
-        "value": 885968.77,
-        "count": 189,
+        "value": 954102.99,
+        "count": 206,
         "maxAge": 60
       },
       {
         "label": "NORTE E NORDESTE",
-        "value": 446018.74,
-        "count": 70,
+        "value": 457992.98,
+        "count": 73,
         "maxAge": 51
       },
       {
         "label": "SEM REGIÃO / NÃO MAPEADO",
-        "value": 84675.42,
-        "count": 24,
-        "maxAge": 45
+        "value": 0.0,
+        "count": 0,
+        "maxAge": 0
       }
     ],
     "reconstructed": true,
@@ -119,27 +119,27 @@
     "regions": [
       {
         "label": "SUDESTE",
-        "value": 1154211.41,
-        "count": 219,
+        "value": 1158778.37,
+        "count": 223,
         "maxAge": 52
       },
       {
         "label": "SUL E CENTRO OESTE",
-        "value": 885968.77,
-        "count": 189,
+        "value": 954102.99,
+        "count": 206,
         "maxAge": 61
       },
       {
         "label": "NORTE E NORDESTE",
-        "value": 446018.74,
-        "count": 70,
+        "value": 457992.98,
+        "count": 73,
         "maxAge": 52
       },
       {
         "label": "SEM REGIÃO / NÃO MAPEADO",
-        "value": 84675.42,
-        "count": 24,
-        "maxAge": 46
+        "value": 0.0,
+        "count": 0,
+        "maxAge": 0
       }
     ],
     "reconstructed": true,
@@ -156,27 +156,27 @@
     "regions": [
       {
         "label": "SUDESTE",
-        "value": 1154211.41,
-        "count": 219,
+        "value": 1158778.37,
+        "count": 223,
         "maxAge": 53
       },
       {
         "label": "SUL E CENTRO OESTE",
-        "value": 885968.77,
-        "count": 189,
+        "value": 954102.99,
+        "count": 206,
         "maxAge": 62
       },
       {
         "label": "NORTE E NORDESTE",
-        "value": 446018.74,
-        "count": 70,
+        "value": 457992.98,
+        "count": 73,
         "maxAge": 53
       },
       {
         "label": "SEM REGIÃO / NÃO MAPEADO",
-        "value": 84675.42,
-        "count": 24,
-        "maxAge": 47
+        "value": 0.0,
+        "count": 0,
+        "maxAge": 0
       }
     ],
     "reconstructed": true,
@@ -193,27 +193,27 @@
     "regions": [
       {
         "label": "SUDESTE",
-        "value": 904063.27,
-        "count": 164,
+        "value": 906617.66,
+        "count": 166,
         "maxAge": 54
       },
       {
         "label": "SUL E CENTRO OESTE",
-        "value": 674981.53,
-        "count": 144,
+        "value": 728187.39,
+        "count": 158,
         "maxAge": 63
       },
       {
         "label": "NORTE E NORDESTE",
-        "value": 211655.14,
-        "count": 53,
+        "value": 217188.57,
+        "count": 54,
         "maxAge": 54
       },
       {
         "label": "SEM REGIÃO / NÃO MAPEADO",
-        "value": 61293.68,
-        "count": 17,
-        "maxAge": 48
+        "value": 0.0,
+        "count": 0,
+        "maxAge": 0
       }
     ],
     "reconstructed": true,
@@ -230,27 +230,27 @@
     "regions": [
       {
         "label": "SUDESTE",
-        "value": 905576.85,
-        "count": 165,
+        "value": 908131.24,
+        "count": 167,
         "maxAge": 55
       },
       {
         "label": "SUL E CENTRO OESTE",
-        "value": 820777.57,
-        "count": 163,
+        "value": 873983.43,
+        "count": 177,
         "maxAge": 64
       },
       {
         "label": "NORTE E NORDESTE",
-        "value": 214889.72,
-        "count": 56,
+        "value": 220423.15,
+        "count": 57,
         "maxAge": 55
       },
       {
         "label": "SEM REGIÃO / NÃO MAPEADO",
-        "value": 61293.68,
-        "count": 17,
-        "maxAge": 49
+        "value": 0.0,
+        "count": 0,
+        "maxAge": 0
       }
     ]
   }

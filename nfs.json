@@ -335,7 +335,7 @@
       "octopus": "Sem situação",
       "release": "",
       "group": "SEM GRUPO MAPEADO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "NORTE E NORDESTE",
       "priority": false
     },
     {
@@ -1807,7 +1807,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-07-29",
       "group": "SEM GRUPO MAPEADO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUDESTE",
       "priority": false
     },
     {
@@ -1855,7 +1855,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-07-22",
       "group": "7 - GRUPO DC SECCO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": true
     },
     {
@@ -2543,7 +2543,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-07-27",
       "group": "SEM GRUPO MAPEADO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": false
     },
     {
@@ -2623,7 +2623,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-07-27",
       "group": "7 - GRUPO DC SECCO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": true
     },
     {
@@ -2655,7 +2655,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-07-24",
       "group": "7 - GRUPO DC SECCO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": true
     },
     {
@@ -2671,7 +2671,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-07-24",
       "group": "7 - GRUPO DC SECCO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": true
     },
     {
@@ -2687,7 +2687,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-07-27",
       "group": "7 - GRUPO DC SECCO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": true
     },
     {
@@ -2799,7 +2799,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-07-27",
       "group": "7 - GRUPO DC SECCO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": true
     },
     {
@@ -3199,7 +3199,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-07-29",
       "group": "7 - GRUPO DC SECCO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": true
     },
     {
@@ -3567,7 +3567,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-08-03",
       "group": "SEM GRUPO MAPEADO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": false
     },
     {
@@ -3855,7 +3855,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-07-31",
       "group": "7 - GRUPO DC SECCO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": true
     },
     {
@@ -3935,7 +3935,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-07-31",
       "group": "SEM GRUPO MAPEADO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": false
     },
     {
@@ -4559,7 +4559,7 @@
       "octopus": "Sem situação",
       "release": "",
       "group": "SEM GRUPO MAPEADO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUDESTE",
       "priority": false
     },
     {
@@ -5151,7 +5151,7 @@
       "octopus": "Liberados",
       "release": "2026-08-04",
       "group": "SEM GRUPO MAPEADO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": false
     },
     {
@@ -5439,7 +5439,7 @@
       "octopus": "Sem situação",
       "release": "",
       "group": "7 - GRUPO DC SECCO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": true
     },
     {
@@ -5743,7 +5743,7 @@
       "octopus": "Aguardo Expedição",
       "release": "2026-08-03",
       "group": "7 - GRUPO DC SECCO",
-      "region": "SEM REGIÃO / NÃO MAPEADO",
+      "region": "SUL E CENTRO OESTE",
       "priority": true
     },
     {
