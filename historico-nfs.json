@@ -8,11 +8,250 @@
       "maxAge": 61
     },
     "regions": [
-      {"label":"SUDESTE","value":755520.62,"count":235,"maxAge":61},
-      {"label":"SUL E CENTRO OESTE","value":381991.05,"count":164,"maxAge":58},
-      {"label":"NORTE E NORDESTE","value":225497.07,"count":54,"maxAge":49},
-      {"label":"SEM REGI\u00c3O / N\u00c3O MAPEADO","value":102580.09,"count":33,"maxAge":43}
+      {
+        "label": "SUDESTE",
+        "value": 755520.62,
+        "count": 235,
+        "maxAge": 61
+      },
+      {
+        "label": "SUL E CENTRO OESTE",
+        "value": 381991.05,
+        "count": 164,
+        "maxAge": 58
+      },
+      {
+        "label": "NORTE E NORDESTE",
+        "value": 225497.07,
+        "count": 54,
+        "maxAge": 49
+      },
+      {
+        "label": "SEM REGIÃO / NÃO MAPEADO",
+        "value": 102580.09,
+        "count": 33,
+        "maxAge": 43
+      }
+    ]
+  },
+  {
+    "date": "2026-07-30",
+    "kpis": {
+      "value": 1534991.72,
+      "count": 421,
+      "priorityClients": 46,
+      "maxAge": 62
+    },
+    "regions": [
+      {
+        "label": "SUDESTE",
+        "value": 792762.08,
+        "count": 185,
+        "maxAge": 62
+      },
+      {
+        "label": "SUL E CENTRO OESTE",
+        "value": 431531.14,
+        "count": 158,
+        "maxAge": 59
+      },
+      {
+        "label": "NORTE E NORDESTE",
+        "value": 254717.95,
+        "count": 54,
+        "maxAge": 50
+      },
+      {
+        "label": "SEM REGIÃO / NÃO MAPEADO",
+        "value": 55980.55,
+        "count": 24,
+        "maxAge": 44
+      }
+    ],
+    "reconstructed": true,
+    "method": "Emissão até a data e Saída vazia ou posterior à data"
+  },
+  {
+    "date": "2026-07-31",
+    "kpis": {
+      "value": 2570874.34,
+      "count": 502,
+      "priorityClients": 50,
+      "maxAge": 60
+    },
+    "regions": [
+      {
+        "label": "SUDESTE",
+        "value": 1154211.41,
+        "count": 219,
+        "maxAge": 51
+      },
+      {
+        "label": "SUL E CENTRO OESTE",
+        "value": 885968.77,
+        "count": 189,
+        "maxAge": 60
+      },
+      {
+        "label": "NORTE E NORDESTE",
+        "value": 446018.74,
+        "count": 70,
+        "maxAge": 51
+      },
+      {
+        "label": "SEM REGIÃO / NÃO MAPEADO",
+        "value": 84675.42,
+        "count": 24,
+        "maxAge": 45
+      }
+    ],
+    "reconstructed": true,
+    "method": "Emissão até a data e Saída vazia ou posterior à data"
+  },
+  {
+    "date": "2026-08-01",
+    "kpis": {
+      "value": 2570874.34,
+      "count": 502,
+      "priorityClients": 50,
+      "maxAge": 61
+    },
+    "regions": [
+      {
+        "label": "SUDESTE",
+        "value": 1154211.41,
+        "count": 219,
+        "maxAge": 52
+      },
+      {
+        "label": "SUL E CENTRO OESTE",
+        "value": 885968.77,
+        "count": 189,
+        "maxAge": 61
+      },
+      {
+        "label": "NORTE E NORDESTE",
+        "value": 446018.74,
+        "count": 70,
+        "maxAge": 52
+      },
+      {
+        "label": "SEM REGIÃO / NÃO MAPEADO",
+        "value": 84675.42,
+        "count": 24,
+        "maxAge": 46
+      }
+    ],
+    "reconstructed": true,
+    "method": "Emissão até a data e Saída vazia ou posterior à data"
+  },
+  {
+    "date": "2026-08-02",
+    "kpis": {
+      "value": 2570874.34,
+      "count": 502,
+      "priorityClients": 50,
+      "maxAge": 62
+    },
+    "regions": [
+      {
+        "label": "SUDESTE",
+        "value": 1154211.41,
+        "count": 219,
+        "maxAge": 53
+      },
+      {
+        "label": "SUL E CENTRO OESTE",
+        "value": 885968.77,
+        "count": 189,
+        "maxAge": 62
+      },
+      {
+        "label": "NORTE E NORDESTE",
+        "value": 446018.74,
+        "count": 70,
+        "maxAge": 53
+      },
+      {
+        "label": "SEM REGIÃO / NÃO MAPEADO",
+        "value": 84675.42,
+        "count": 24,
+        "maxAge": 47
+      }
+    ],
+    "reconstructed": true,
+    "method": "Emissão até a data e Saída vazia ou posterior à data"
+  },
+  {
+    "date": "2026-08-03",
+    "kpis": {
+      "value": 1851993.62,
+      "count": 378,
+      "priorityClients": 45,
+      "maxAge": 63
+    },
+    "regions": [
+      {
+        "label": "SUDESTE",
+        "value": 904063.27,
+        "count": 164,
+        "maxAge": 54
+      },
+      {
+        "label": "SUL E CENTRO OESTE",
+        "value": 674981.53,
+        "count": 144,
+        "maxAge": 63
+      },
+      {
+        "label": "NORTE E NORDESTE",
+        "value": 211655.14,
+        "count": 53,
+        "maxAge": 54
+      },
+      {
+        "label": "SEM REGIÃO / NÃO MAPEADO",
+        "value": 61293.68,
+        "count": 17,
+        "maxAge": 48
+      }
+    ],
+    "reconstructed": true,
+    "method": "Emissão até a data e Saída vazia ou posterior à data"
+  },
+  {
+    "date": "2026-08-04",
+    "kpis": {
+      "value": 2002537.82,
+      "count": 401,
+      "priorityClients": 48,
+      "maxAge": 64
+    },
+    "regions": [
+      {
+        "label": "SUDESTE",
+        "value": 905576.85,
+        "count": 165,
+        "maxAge": 55
+      },
+      {
+        "label": "SUL E CENTRO OESTE",
+        "value": 820777.57,
+        "count": 163,
+        "maxAge": 64
+      },
+      {
+        "label": "NORTE E NORDESTE",
+        "value": 214889.72,
+        "count": 56,
+        "maxAge": 55
+      },
+      {
+        "label": "SEM REGIÃO / NÃO MAPEADO",
+        "value": 61293.68,
+        "count": 17,
+        "maxAge": 49
+      }
     ]
   }
 ]
-
