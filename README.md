@@ -2,9 +2,9 @@
 
 Dashboard estático para acompanhamento de notas fiscais emitidas e ainda sem saída.
 
-Fonte atual: relatório de 04/08/2026.
+Fonte atual: relatório de 05/08/2026.
 
-Os pontos de 29/07 e 04/08 são snapshots reais. Os pontos de 30/07 a 03/08 foram reconstruídos a partir das datas de emissão e saída do relatório de 04/08 e estão identificados no JSON com `reconstructed: true`.
+Os pontos de 29/07, 04/08 e 05/08 são snapshots reais. Os pontos intermediários reconstruídos a partir das datas de emissão e saída estão identificados no JSON com `reconstructed: true`.
 
 ## Atualização local
 
