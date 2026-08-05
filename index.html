@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script>try{document.documentElement.dataset.theme=localStorage.getItem("wetzel-theme")||"dark"}catch{document.documentElement.dataset.theme="dark"}</script>
-  <link rel="stylesheet" href="styles.css?v=10">
+  <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
   <main>
@@ -63,14 +63,30 @@
           <select id="regionFilter" aria-label="Filtrar regi&#227;o"><option value="Todas">Todas as regi&#245;es</option></select>
           <select id="sortFilter" aria-label="Ordenar"><option value="age">Maior atraso</option><option value="value">Maior valor</option></select>
         </div>
-        <div class="table-scroll"><table><thead><tr><th>Prioridade</th><th>NF / Emiss&#227;o</th><th>Cliente</th><th>Representante</th><th>Situa&#231;&#227;o</th><th>Valor</th><th>Tempo</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+        <div class="table-scroll"><table><thead><tr><th>Prioridade</th><th>NF / Emiss&#227;o</th><th>Cliente</th><th>Representante</th><th>Situa&#231;&#227;o</th><th>Valor</th><th>Tempo</th><th>Observa&#231;&#227;o</th></tr></thead><tbody id="tableBody"></tbody></table></div>
         <button class="load-more" id="loadMore">Ver mais 20 notas</button>
         <div class="empty-state" id="emptyState" hidden>Nenhuma NF encontrada com filtros atuais.</div>
+      </section>
+      <section class="observation-popover" id="observationPopover" aria-live="polite">
+        <div class="observation-head"><div><p class="panel-kicker">OBSERVA&#199;&#195;O</p><h3 id="observationTitle">NF</h3><span id="observationContext"></span></div><button type="button" class="observation-close" id="observationClose" aria-label="Fechar">&#215;</button></div>
+        <div class="observation-view">
+          <span class="observation-status" id="observationViewStatus"></span>
+          <p id="observationViewText"></p>
+          <small id="observationUpdated"></small>
+          <button type="button" class="observation-primary" id="observationEdit">Editar observa&#231;&#227;o</button>
+        </div>
+        <div class="observation-form">
+          <label for="observationStatus">Status operacional</label>
+          <select id="observationStatus"><option>Sem status</option><option>EMBARCOU</option><option>PENDENTE</option><option>EM AN&#193;LISE</option><option>RESOLVIDO</option></select>
+          <label for="observationText">Detalhamento</label>
+          <textarea id="observationText" maxlength="500" placeholder="Digite a observa&#231;&#227;o completa..."></textarea>
+          <div class="observation-actions"><button type="button" id="observationCancel">Cancelar</button><button type="button" class="observation-primary" id="observationSave">Salvar observa&#231;&#227;o</button></div>
+        </div>
       </section>
       <footer><span>Wetzel &#183; Radar de Expedi&#231;&#227;o</span><span id="referenceDate"></span></footer>
     </div>
   </main>
-  <script src="app.js?v=13"></script>
+  <script src="app.js?v=14"></script>
 </body>
 </html>
 

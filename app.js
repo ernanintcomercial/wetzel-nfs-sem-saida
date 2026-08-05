@@ -7,9 +7,30 @@ const bands = [
 ];
 const colors = {"Sem situa\u00e7\u00e3o":"#8994a5","Aguardo Expedi\u00e7\u00e3o":"#d6a34a","N\u00e3o Liberados":"#cf5058","Liberados":"#2f8f83","Em Confer\u00eancia":"#6b79c8","Embarque Expedido":"#4f8fba","Em Separa\u00e7\u00e3o":"#a56cc1"};
 let records=[], filtered=[], visible=15, selectedStatus="Todos", selectedRegion="Todas", selectedPriority="Todas", minimumAge=0, selectedBand=null, sorting="age", metricMode="value";
+let activeObservationKey=null;
 const byId = id => document.getElementById(id);
 const sum = (items,field="value") => items.reduce((total,item)=>total+(Number(item[field])||0),0);
 const escapeHtml = value => String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const observationKey = record => `${record.nf}|${record.clientId}|${record.emission}`;
+function readObservations(){try{return JSON.parse(localStorage.getItem("wetzel-nf-observations")||"{}")}catch{return{}}}
+function writeObservations(data){try{localStorage.setItem("wetzel-nf-observations",JSON.stringify(data))}catch{}}
+function getObservation(record){return readObservations()[observationKey(record)]||{status:"Sem status",text:"",updatedAt:""}}
+function observationPreview(observation){return observation.text||"Adicionar observação"}
+function closeObservation(){byId("observationPopover").classList.remove("open","editing");activeObservationKey=null}
+function openObservation(record,button){
+  const observation=getObservation(record),popover=byId("observationPopover"),rect=button.getBoundingClientRect();
+  activeObservationKey=observationKey(record);
+  byId("observationTitle").textContent=`NF ${record.nf}`;
+  byId("observationContext").textContent=`${record.client} · ${money.format(record.value)}`;
+  byId("observationViewStatus").textContent=observation.status;
+  byId("observationViewText").textContent=observation.text||"Sem detalhamento.";
+  byId("observationUpdated").textContent=observation.updatedAt?`Última atualização: ${observation.updatedAt}`:"Ainda sem atualização";
+  byId("observationStatus").value=observation.status;
+  byId("observationText").value=observation.text;
+  popover.classList.remove("editing");popover.classList.add("open");
+  const width=Math.min(390,window.innerWidth-24),left=Math.max(12,Math.min(rect.left,window.innerWidth-width-12));
+  popover.style.width=`${width}px`;popover.style.left=`${left}px`;popover.style.top=`${Math.max(12,Math.min(rect.bottom+8,window.innerHeight-330))}px`;
+}
 function setTheme(theme){
   const selected=theme==="light"?"light":"dark";
   document.documentElement.dataset.theme=selected;
@@ -30,7 +51,8 @@ function renderTable(){
   byId("resultCount").textContent=`${integer.format(filtered.length)} resultados`;
   byId("tableBody").innerHTML=filtered.slice(0,visible).map(x=>{
     const [label,klass]=risk(x.age);
-    return `<tr><td><span class="risk ${klass}">${label}</span></td><td><strong class="nf">${escapeHtml(x.nf)}</strong><small>${formatDate(x.emission)}</small></td><td><strong>${escapeHtml(x.client)}</strong><small>${escapeHtml(x.group)} \u00b7 Emb. ${escapeHtml(x.shipment)}</small><span class="priority-flag${x.priority?"":" standard"}">${x.priority?"Priorit\u00e1rio":"N\u00e3o priorit\u00e1rio"}</span></td><td>${escapeHtml(x.representative)}<small>${escapeHtml(x.region)}</small></td><td><span class="status-pill"><i style="background:${colors[x.octopus]||"#8994a5"}"></i>${escapeHtml(x.octopus)}</span></td><td class="number">${money.format(x.value)}</td><td class="age-cell"><strong>${x.age}</strong><span>dias</span></td></tr>`;
+    const observation=getObservation(x);
+    return `<tr><td><span class="risk ${klass}">${label}</span></td><td><strong class="nf">${escapeHtml(x.nf)}</strong><small>${formatDate(x.emission)}</small></td><td><strong>${escapeHtml(x.client)}</strong><small>${escapeHtml(x.group)} \u00b7 Emb. ${escapeHtml(x.shipment)}</small><span class="priority-flag${x.priority?"":" standard"}">${x.priority?"Priorit\u00e1rio":"N\u00e3o priorit\u00e1rio"}</span></td><td>${escapeHtml(x.representative)}<small>${escapeHtml(x.region)}</small></td><td><span class="status-pill"><i style="background:${colors[x.octopus]||"#8994a5"}"></i>${escapeHtml(x.octopus)}</span></td><td class="number">${money.format(x.value)}</td><td class="age-cell"><strong>${x.age}</strong><span>dias</span></td><td><button type="button" class="observation-cell${observation.text?" has-observation":""}" data-observation-key="${escapeHtml(observationKey(x))}"><strong>${escapeHtml(observation.status)}</strong><span>${escapeHtml(observationPreview(observation))}</span></button></td></tr>`;
   }).join("");
   byId("loadMore").hidden=visible>=filtered.length;
   byId("emptyState").hidden=filtered.length>0;
@@ -124,6 +146,20 @@ async function init(){
   byId("regionFilter").onchange=e=>{selectedRegion=e.target.value;visible=15;renderTable()};
   byId("sortFilter").onchange=e=>{sorting=e.target.value;visible=15;renderTable()};
   byId("loadMore").onclick=()=>{visible+=20;renderTable()};
+  byId("tableBody").onclick=event=>{
+    const button=event.target.closest(".observation-cell");if(!button)return;
+    const record=records.find(item=>observationKey(item)===button.dataset.observationKey);if(record)openObservation(record,button);
+  };
+  byId("observationClose").onclick=closeObservation;
+  byId("observationCancel").onclick=()=>byId("observationPopover").classList.remove("editing");
+  byId("observationEdit").onclick=()=>byId("observationPopover").classList.add("editing");
+  byId("observationSave").onclick=()=>{
+    const record=records.find(item=>observationKey(item)===activeObservationKey);if(!record)return;
+    const observations=readObservations(),now=new Date().toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
+    observations[activeObservationKey]={status:byId("observationStatus").value,text:byId("observationText").value.trim(),updatedAt:now};
+    writeObservations(observations);closeObservation();renderTable();
+  };
+  document.addEventListener("keydown",event=>{if(event.key==="Escape")closeObservation()});
   renderTable();
 }
 init().catch(()=>{byId("updatedAt").textContent="N\u00e3o foi poss\u00edvel carregar a base.";});
