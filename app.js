@@ -29,7 +29,10 @@ function openObservation(record,button){
   byId("observationText").value=observation.text;
   popover.classList.remove("editing");popover.classList.add("open");
   const width=Math.min(390,window.innerWidth-24),left=Math.max(12,Math.min(rect.left,window.innerWidth-width-12));
-  popover.style.width=`${width}px`;popover.style.left=`${left}px`;popover.style.top=`${Math.max(12,Math.min(rect.bottom+8,window.innerHeight-330))}px`;
+  popover.style.width=`${width}px`;
+  const height=Math.min(popover.offsetHeight,window.innerHeight-24),below=rect.bottom+8;
+  const top=below+height<=window.innerHeight-12?below:Math.max(12,rect.top-height-8);
+  popover.style.left=`${left+window.scrollX}px`;popover.style.top=`${top+window.scrollY}px`;
 }
 function setTheme(theme){
   const selected=theme==="light"?"light":"dark";
