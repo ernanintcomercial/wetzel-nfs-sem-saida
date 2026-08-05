@@ -189,7 +189,8 @@ def main():
     )
     groups = load_group_map(args.groups)
     regions = load_region_map(args.regions)
-    reference_date = df["Emissão"].max().normalize()
+    file_date = pd.Timestamp(datetime.fromtimestamp(args.source.stat().st_mtime).date())
+    reference_date = max(df["Emissão"].max().normalize(), file_date)
     open_df = df[df["Saída"].isna()].copy()
     records = [enrich_row(row, reference_date, groups, regions) for _, row in open_df.iterrows()]
     records.sort(key=lambda r: (-r["age"], -r["value"], r["nf"]))
@@ -203,14 +204,14 @@ def main():
     history_path = repo / "historico-nfs.json"
     history = json.loads(history_path.read_text(encoding="utf-8")) if history_path.exists() else []
     preserved = {item["date"]: item for item in history if item["date"] < args.history_start}
-    for specification in args.actual_snapshot:
-        date_text, source_text = specification.split("=", 1)
-        snapshot_date = pd.Timestamp(date_text).normalize()
-        preserved[date_text] = actual_snapshot(load_source(Path(source_text)), snapshot_date, groups, regions, uf_lookup)
     for date in pd.date_range(args.history_start, reference_date, freq="D"):
         preserved[date.strftime("%Y-%m-%d")] = snapshot(
             df, date, groups, regions, reconstructed=date.normalize() != reference_date
         )
+    for specification in args.actual_snapshot:
+        date_text, source_text = specification.split("=", 1)
+        snapshot_date = pd.Timestamp(date_text).normalize()
+        preserved[date_text] = actual_snapshot(load_source(Path(source_text)), snapshot_date, groups, regions, uf_lookup)
     history = [preserved[key] for key in sorted(preserved)]
     history_path.write_text(json.dumps(history, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

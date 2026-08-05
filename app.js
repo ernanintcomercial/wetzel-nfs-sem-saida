@@ -58,7 +58,7 @@ function evolutionRow(label,current,history,currentDate,getter,formatter){
 }
 function evolutionHeader(){return`<thead><tr><th>M\u00e9trica</th><th>Hoje</th>${evolutionPoints.map(x=>`<th>${x[0]}</th>`).join("")}</tr></thead>`}
 async function init(){
-  const data=await fetch("nfs-compact.json?v=20260804-regionuf").then(r=>r.json());
+  const data=await fetch("nfs-compact.json?v=20260805").then(r=>r.json());
   const reference=new Date(`${data.referenceDate}T12:00:00`);
   records=data.records.map(x=>{const emission=new Date(reference);emission.setDate(emission.getDate()-x[1]);return{nf:x[0],age:x[1],emission:emission.toISOString().slice(0,10),clientId:x[2],client:data.clients[x[3]],representative:data.representatives[x[4]],value:x[5],shipment:x[6],octopus:data.statuses[x[7]],group:data.groups[x[8]],region:data.regions[x[9]],priority:Boolean(x[10])}});
   byId("updatedAt").innerHTML=`Atualizado em: <b>${data.sourceUpdatedAt}</b><br>Refer\u00eancia da base: ${formatDate(data.referenceDate)}`;
@@ -74,7 +74,7 @@ async function init(){
   const regionRows=data.regions.map(region=>{const items=records.filter(x=>x.region===region);return{label:region,value:sum(items),count:items.length,maxAge:Math.max(...items.map(x=>x.age))}});
   byId("regionSummaryBody").innerHTML=regionRows.map(x=>`<tr><td>${escapeHtml(x.label)}</td><td>${money.format(x.value)}</td><td>${integer.format(x.count)}</td><td>${integer.format(x.maxAge)}</td></tr>`).join("");
   const currentSnapshot={date:data.referenceDate,kpis:{value:total,count:records.length,priorityClients,maxAge:Math.max(...records.map(x=>x.age))},regions:regionRows};
-  let history=[];try{history=await fetch("historico-nfs.json?v=20260804-regionuf").then(r=>r.ok?r.json():[])}catch{}
+  let history=[];try{history=await fetch("historico-nfs.json?v=20260805").then(r=>r.ok?r.json():[])}catch{}
   const generalRows=[
     evolutionRow("NF sem sa\u00edda (R$)",currentSnapshot.kpis.value,history,data.referenceDate,x=>x.kpis.value,money.format),
     evolutionRow("Quantidade de NFs",currentSnapshot.kpis.count,history,data.referenceDate,x=>x.kpis.count,integer.format),
