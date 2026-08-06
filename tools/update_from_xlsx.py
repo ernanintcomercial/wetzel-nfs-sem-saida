@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 import unicodedata
 from datetime import datetime
 from pathlib import Path
@@ -36,6 +37,11 @@ def identifier(value):
     return "" if pd.isna(number) else str(int(number))
 
 
+def leading_identifier(value):
+    match = re.match(r"\s*(\d+)", text(value))
+    return match.group(1) if match else ""
+
+
 def normalize(value):
     raw = unicodedata.normalize("NFKD", text(value).upper())
     return " ".join("".join(ch for ch in raw if not unicodedata.combining(ch)).split())
@@ -60,8 +66,13 @@ def load_source(path):
 
 def load_group_map(path):
     df = pd.read_excel(path, sheet_name="Export")
-    df = df[pd.to_numeric(df["ID Cliente"], errors="coerce").notna() & df["Grupo"].notna()].copy()
-    df["clientId"] = df["ID Cliente"].map(identifier)
+    if "ID Cliente" in df.columns:
+        df["clientId"] = df["ID Cliente"].map(identifier)
+    elif "Cliente" in df.columns:
+        df["clientId"] = df["Cliente"].map(leading_identifier)
+    else:
+        raise ValueError("Fonte de grupos sem as colunas 'ID Cliente' ou 'Cliente'")
+    df = df[df["clientId"].ne("") & df["Grupo"].notna()].copy()
     return df.drop_duplicates("clientId").set_index("clientId")["Grupo"].astype(str).to_dict()
 
 
@@ -73,7 +84,20 @@ def load_region_map(path):
     return df.drop_duplicates("representativeId").set_index("representativeId")["canonical"].to_dict()
 
 
-def enrich_row(row, reference_date, groups, regions):
+def load_priority_codes(path):
+    df = pd.read_excel(path)
+    if "Cod" in df.columns:
+        return {identifier(value) for value in df["Cod"] if identifier(value)}
+    if "ID Cliente" in df.columns:
+        return {identifier(value) for value in df["ID Cliente"] if identifier(value)}
+    raise ValueError("Fonte de prioridades sem as colunas 'Cod' ou 'ID Cliente'")
+
+
+def is_priority(client_id, group, priorities):
+    return client_id in priorities or leading_identifier(group) in priorities
+
+
+def enrich_row(row, reference_date, groups, regions, priorities):
     client_id = identifier(row["ID Cliente"])
     representative_id = identifier(row["ID Representante"])
     raw_status = text(row["Sit Octopus"])
@@ -92,7 +116,7 @@ def enrich_row(row, reference_date, groups, regions):
         "release": iso_date(row["Lib Octopus"]),
         "group": group,
         "region": resolve_region(representative_id, row["Localização - UF"], regions),
-        "priority": client_id in groups,
+        "priority": is_priority(client_id, group, priorities),
     }
 
 
@@ -122,12 +146,13 @@ def compact_payload(reference_date, source_updated_at, records):
     return {"referenceDate": reference_date.strftime("%Y-%m-%d"), "sourceUpdatedAt": source_updated_at, **dimensions, "records": rows}
 
 
-def summarize_snapshot(current, date, groups, regions, reconstructed):
+def summarize_snapshot(current, date, groups, regions, priorities, reconstructed):
     current = current.copy()
     current["clientId"] = current["ID Cliente"].map(identifier)
     current["representativeId"] = current["ID Representante"].map(identifier)
     current["region"] = [resolve_region(rid, uf, regions) for rid, uf in zip(current["representativeId"], current["Localização - UF"])]
-    current["priority"] = current["clientId"].isin(groups)
+    current["group"] = current["clientId"].map(groups).fillna("SEM GRUPO MAPEADO")
+    current["priority"] = [is_priority(client_id, group, priorities) for client_id, group in zip(current["clientId"], current["group"])]
     region_rows = []
     for region in ["SUDESTE", "SUL E CENTRO OESTE", "NORTE E NORDESTE", UNMAPPED_REGION]:
         items = current[current["region"] == region]
@@ -153,12 +178,12 @@ def summarize_snapshot(current, date, groups, regions, reconstructed):
     return result
 
 
-def snapshot(df, date, groups, regions, reconstructed=True):
+def snapshot(df, date, groups, regions, priorities, reconstructed=True):
     current = df[(df["Emissão"] <= date) & (df["Saída"].isna() | (df["Saída"] > date))]
-    return summarize_snapshot(current, date, groups, regions, reconstructed)
+    return summarize_snapshot(current, date, groups, regions, priorities, reconstructed)
 
 
-def actual_snapshot(df, date, groups, regions, uf_lookup):
+def actual_snapshot(df, date, groups, regions, priorities, uf_lookup):
     if "Localização - UF" not in df.columns:
         df = df.copy()
         df["Localização - UF"] = pd.to_numeric(df["NF"], errors="coerce").map(uf_lookup)
@@ -166,15 +191,17 @@ def actual_snapshot(df, date, groups, regions, uf_lookup):
         missing = int((df["Saída"].isna() & df["Localização - UF"].isna() & ~representative_ids.isin(regions)).sum())
         if missing:
             raise ValueError(f"{missing} NFs do snapshot real ficaram sem UF após a conciliação por NF")
-    return summarize_snapshot(df[df["Saída"].isna()], date, groups, regions, reconstructed=False)
+    return summarize_snapshot(df[df["Saída"].isna()], date, groups, regions, priorities, reconstructed=False)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
     parser.add_argument("--groups", type=Path, required=True)
+    parser.add_argument("--priorities", type=Path, required=True)
     parser.add_argument("--regions", type=Path, required=True)
     parser.add_argument("--history-start", default="2026-07-30")
+    parser.add_argument("--reconstruct-history", action="store_true")
     parser.add_argument("--actual-snapshot", action="append", default=[], metavar="DATE=PATH")
     args = parser.parse_args()
 
@@ -188,32 +215,38 @@ def main():
         .to_dict()
     )
     groups = load_group_map(args.groups)
+    priorities = load_priority_codes(args.priorities)
     regions = load_region_map(args.regions)
     file_date = pd.Timestamp(datetime.fromtimestamp(args.source.stat().st_mtime).date())
     reference_date = max(df["Emissão"].max().normalize(), file_date)
     open_df = df[df["Saída"].isna()].copy()
-    records = [enrich_row(row, reference_date, groups, regions) for _, row in open_df.iterrows()]
+    records = [enrich_row(row, reference_date, groups, regions, priorities) for _, row in open_df.iterrows()]
     records.sort(key=lambda r: (-r["age"], -r["value"], r["nf"]))
     source_updated_at = datetime.fromtimestamp(args.source.stat().st_mtime).strftime("%d/%m/%Y %H:%M")
 
     full = {"referenceDate": reference_date.strftime("%Y-%m-%d"), "sourceUpdatedAt": source_updated_at, "records": records}
     compact = compact_payload(reference_date, source_updated_at, records)
-    (repo / "nfs.json").write_text(json.dumps(full, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (repo / "nfs-compact.json").write_text(json.dumps(compact, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+    (repo / "nfs.json").write_text(json.dumps(full, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+    (repo / "nfs-compact.json").write_text(json.dumps(compact, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8", newline="\n")
 
     history_path = repo / "historico-nfs.json"
     history = json.loads(history_path.read_text(encoding="utf-8")) if history_path.exists() else []
-    preserved = {item["date"]: item for item in history if item["date"] < args.history_start}
-    for date in pd.date_range(args.history_start, reference_date, freq="D"):
-        preserved[date.strftime("%Y-%m-%d")] = snapshot(
-            df, date, groups, regions, reconstructed=date.normalize() != reference_date
-        )
+    preserved = {item["date"]: item for item in history}
+    if args.reconstruct_history:
+        preserved = {item["date"]: item for item in history if item["date"] < args.history_start}
+        for date in pd.date_range(args.history_start, reference_date, freq="D"):
+            preserved[date.strftime("%Y-%m-%d")] = snapshot(
+                df, date, groups, regions, priorities, reconstructed=date.normalize() != reference_date
+            )
+    preserved[reference_date.strftime("%Y-%m-%d")] = actual_snapshot(
+        df, reference_date, groups, regions, priorities, uf_lookup
+    )
     for specification in args.actual_snapshot:
         date_text, source_text = specification.split("=", 1)
         snapshot_date = pd.Timestamp(date_text).normalize()
-        preserved[date_text] = actual_snapshot(load_source(Path(source_text)), snapshot_date, groups, regions, uf_lookup)
+        preserved[date_text] = actual_snapshot(load_source(Path(source_text)), snapshot_date, groups, regions, priorities, uf_lookup)
     history = [preserved[key] for key in sorted(preserved)]
-    history_path.write_text(json.dumps(history, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    history_path.write_text(json.dumps(history, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
     print(json.dumps({
         "referenceDate": full["referenceDate"], "sourceUpdatedAt": source_updated_at,
