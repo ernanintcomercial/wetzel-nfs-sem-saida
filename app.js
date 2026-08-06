@@ -8,13 +8,31 @@ const bands = [
 const colors = {"Sem situa\u00e7\u00e3o":"#8994a5","Aguardo Expedi\u00e7\u00e3o":"#d6a34a","N\u00e3o Liberados":"#cf5058","Liberados":"#2f8f83","Em Confer\u00eancia":"#6b79c8","Embarque Expedido":"#4f8fba","Em Separa\u00e7\u00e3o":"#a56cc1"};
 let records=[], filtered=[], visible=15, selectedStatus="Todos", selectedRegion="Todas", selectedPriority="Todas", minimumAge=0, selectedBand=null, sorting="age", metricMode="value";
 let activeObservationKey=null;
+let observationsCache=readLocalObservations(), observationsRemote=false;
 const byId = id => document.getElementById(id);
 const sum = (items,field="value") => items.reduce((total,item)=>total+(Number(item[field])||0),0);
 const escapeHtml = value => String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 const observationKey = record => `${record.nf}|${record.clientId}|${record.emission}`;
-function readObservations(){try{return JSON.parse(localStorage.getItem("wetzel-nf-observations")||"{}")}catch{return{}}}
-function writeObservations(data){try{localStorage.setItem("wetzel-nf-observations",JSON.stringify(data))}catch{}}
-function getObservation(record){return readObservations()[observationKey(record)]||{status:"Sem status",text:"",updatedAt:""}}
+function readLocalObservations(){try{return JSON.parse(localStorage.getItem("wetzel-nf-observations")||"{}")}catch{return{}}}
+function writeLocalObservations(data){try{localStorage.setItem("wetzel-nf-observations",JSON.stringify(data))}catch{}}
+function getObservation(record){return observationsCache[observationKey(record)]||{status:"Sem status",text:"",updatedAt:""}}
+function observationTimestamp(value){if(!value)return"";const date=new Date(value);return Number.isNaN(date.getTime())?value:date.toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}
+async function loadRemoteObservations(){
+  try{
+    const response=await fetch("/api/nfs/observacoes",{headers:{Accept:"application/json"}});
+    if(!response.ok)return;
+    observationsCache=await response.json();observationsRemote=true;
+  }catch{}
+}
+async function saveObservation(record,status,text){
+  if(observationsRemote){
+    const response=await fetch("/api/nfs/observacoes",{method:"PUT",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({recordKey:observationKey(record),status,text})});
+    if(!response.ok)throw new Error(await response.text()||"Não foi possível salvar a observação.");
+    const saved=await response.json();observationsCache[observationKey(record)]=saved;return;
+  }
+  observationsCache[observationKey(record)]={status,text,updatedAt:new Date().toISOString()};
+  writeLocalObservations(observationsCache);
+}
 function observationPreview(observation){return observation.text||"Adicionar observação"}
 function closeObservation(){byId("observationPopover").classList.remove("open","editing");activeObservationKey=null}
 function openObservation(record,button){
@@ -24,7 +42,7 @@ function openObservation(record,button){
   byId("observationContext").textContent=`${record.client} · ${money.format(record.value)}`;
   byId("observationViewStatus").textContent=observation.status;
   byId("observationViewText").textContent=observation.text||"Sem detalhamento.";
-  byId("observationUpdated").textContent=observation.updatedAt?`Última atualização: ${observation.updatedAt}`:"Ainda sem atualização";
+  byId("observationUpdated").textContent=observation.updatedAt?`Última atualização: ${observationTimestamp(observation.updatedAt)}`:"Ainda sem atualização";
   byId("observationStatus").value=observation.status;
   byId("observationText").value=observation.text;
   popover.classList.remove("editing");popover.classList.add("open");
@@ -86,6 +104,7 @@ async function init(){
   const data=await fetch("nfs-compact.json?v=20260805").then(r=>r.json());
   const reference=new Date(`${data.referenceDate}T12:00:00`);
   records=data.records.map(x=>{const emission=new Date(reference);emission.setDate(emission.getDate()-x[1]);return{nf:x[0],age:x[1],emission:emission.toISOString().slice(0,10),clientId:x[2],client:data.clients[x[3]],representative:data.representatives[x[4]],value:x[5],shipment:x[6],octopus:data.statuses[x[7]],group:data.groups[x[8]],region:data.regions[x[9]],priority:Boolean(x[10])}});
+  await loadRemoteObservations();
   byId("updatedAt").innerHTML=`Atualizado em: <b>${data.sourceUpdatedAt}</b><br>Refer\u00eancia da base: ${formatDate(data.referenceDate)}`;
   byId("referenceDate").textContent=`Refer\u00eancia: ${formatDate(data.referenceDate)} \u00b7 Sa\u00edda vazia na origem`;
   const total=sum(records), critical=records.filter(x=>x.age>=25), old=records.filter(x=>x.age>=16), priority=records.filter(x=>x.priority);
@@ -156,11 +175,13 @@ async function init(){
   byId("observationClose").onclick=closeObservation;
   byId("observationCancel").onclick=()=>byId("observationPopover").classList.remove("editing");
   byId("observationEdit").onclick=()=>byId("observationPopover").classList.add("editing");
-  byId("observationSave").onclick=()=>{
+  byId("observationSave").onclick=async()=>{
     const record=records.find(item=>observationKey(item)===activeObservationKey);if(!record)return;
-    const observations=readObservations(),now=new Date().toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
-    observations[activeObservationKey]={status:byId("observationStatus").value,text:byId("observationText").value.trim(),updatedAt:now};
-    writeObservations(observations);closeObservation();renderTable();
+    const button=byId("observationSave");button.disabled=true;
+    try{
+      await saveObservation(record,byId("observationStatus").value,byId("observationText").value.trim());
+      closeObservation();renderTable();
+    }catch(error){alert(error.message)}finally{button.disabled=false}
   };
   document.addEventListener("keydown",event=>{if(event.key==="Escape")closeObservation()});
   renderTable();
