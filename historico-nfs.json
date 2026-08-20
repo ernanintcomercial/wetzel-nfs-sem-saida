@@ -603,5 +603,40 @@
         "maxAge": 0
       }
     ]
+  },
+  {
+    "date": "2026-08-20",
+    "kpis": {
+      "value": 961923.79,
+      "count": 249,
+      "priorityClients": 32,
+      "maxAge": 80
+    },
+    "regions": [
+      {
+        "label": "SUDESTE",
+        "value": 650206.77,
+        "count": 150,
+        "maxAge": 48
+      },
+      {
+        "label": "SUL E CENTRO OESTE",
+        "value": 234947.72,
+        "count": 77,
+        "maxAge": 80
+      },
+      {
+        "label": "NORTE E NORDESTE",
+        "value": 76769.3,
+        "count": 22,
+        "maxAge": 15
+      },
+      {
+        "label": "SEM REGIÃO / NÃO MAPEADO",
+        "value": 0.0,
+        "count": 0,
+        "maxAge": 0
+      }
+    ]
   }
 ]
